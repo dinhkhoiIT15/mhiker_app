@@ -29,8 +29,8 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
 
     private TextInputEditText etName, etLocation, etLength;
     private TextInputEditText etHikerCount, etEquipment, etDate;
+    private TextInputEditText etDescription; // THÊM MỚI
     private MaterialButton btnSave;
-    // THAY ĐỔI: Đã thay thế switchParking
     private AutoCompleteTextView autoCompleteDifficulty, autoCompleteParking;
     private DatabaseHelper dbHelper;
 
@@ -55,14 +55,14 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         etLength = findViewById(R.id.etLength);
         etDate = findViewById(R.id.etDate);
         btnSave = findViewById(R.id.btnSave);
-        // THAY ĐỔI: Cập nhật ID
         autoCompleteParking = findViewById(R.id.autoCompleteParking);
         autoCompleteDifficulty = findViewById(R.id.autoCompleteDifficulty);
         etHikerCount = findViewById(R.id.etHikerCount);
         etEquipment = findViewById(R.id.etEquipment);
+        etDescription = findViewById(R.id.etDescription); // THÊM MỚI
 
         setupDifficultyMenu();
-        setupParkingMenu(); // THÊM MỚI: Gọi hàm setup cho Parking
+        setupParkingMenu();
 
         if (getIntent().hasExtra("EDIT_HIKE")) {
             hikeToEdit = (Hike) getIntent().getSerializableExtra("EDIT_HIKE");
@@ -93,7 +93,6 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         autoCompleteDifficulty.setAdapter(adapter);
     }
 
-    // THÊM MỚI: Hàm setup cho menu Parking
     private void setupParkingMenu() {
         String[] parkingOptions = getResources().getStringArray(R.array.parking_options);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
@@ -110,9 +109,9 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         etLength.setText(hikeToEdit.getLengthOfHike());
         etHikerCount.setText(hikeToEdit.getHikerCount());
         etEquipment.setText(hikeToEdit.getEquipment());
+        etDescription.setText(hikeToEdit.getDescription()); // THÊM MỚI
         autoCompleteDifficulty.setText(hikeToEdit.getDifficultyLevel(), false);
 
-        // THAY ĐỔI: Cập nhật logic để set giá trị Yes/No
         String parkingText = hikeToEdit.isParkingAvailable() ? "Yes" : "No";
         autoCompleteParking.setText(parkingText, false);
     }
@@ -135,30 +134,28 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         String date = etDate.getText().toString().trim();
         String length = etLength.getText().toString().trim();
         String difficulty = autoCompleteDifficulty.getText().toString().trim();
-        // THAY ĐỔI: Lấy dữ liệu từ autoCompleteParking
         String parkingString = autoCompleteParking.getText().toString().trim();
         String hikerCount = etHikerCount.getText().toString().trim();
         String equipment = etEquipment.getText().toString().trim();
+        String description = etDescription.getText().toString().trim(); // THÊM MỚI
 
-        // THAY ĐỔI: Thêm parkingString vào kiểm tra
         if (name.isEmpty() || location.isEmpty() || date.isEmpty() || length.isEmpty() || difficulty.isEmpty() || parkingString.isEmpty()) {
             Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // THAY ĐỔI: Chuyển đổi parkingString sang boolean
         boolean parking = parkingString.equals("Yes");
 
         String confirmationMessage = "Please confirm the details below:\n\n" +
                 "Name: " + name + "\n" +
                 "Location: " + location + "\n" +
                 "Date: " + date + "\n" +
-                // THAY ĐỔI: Hiển thị giá trị Yes/No
                 "Parking Available: " + parkingString + "\n" +
                 "Length of Hike: " + length + " km\n" +
                 "Difficulty: " + difficulty + "\n" +
                 "Hiker Count: " + (hikerCount.isEmpty() ? "N/A" : hikerCount) + "\n" +
-                "Equipment: " + (equipment.isEmpty() ? "N/A" : equipment);
+                "Equipment: " + (equipment.isEmpty() ? "N/A" : equipment) + "\n" + // THÊM MỚI
+                "Description: " + (description.isEmpty() ? "N/A" : description); // THÊM MỚI
 
         String title = (hikeToEdit == null) ? "Confirm Hike Details" : "Confirm Update";
         String positiveButtonText = (hikeToEdit == null) ? "Confirm" : "Update";
@@ -167,15 +164,16 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
                 .setTitle(title)
                 .setMessage(confirmationMessage)
                 .setPositiveButton(positiveButtonText, (dialog, which) -> {
-                    // Truyền giá trị boolean 'parking' đã chuyển đổi
-                    saveHikeToDatabase(name, location, date, parking, length, difficulty, hikerCount, equipment);
+                    // THAY ĐỔI: Thêm description vào hàm save
+                    saveHikeToDatabase(name, location, date, parking, length, difficulty, hikerCount, equipment, description);
                 })
                 .setNegativeButton("Edit", (dialog, which) -> dialog.dismiss())
                 .setIcon(android.R.drawable.ic_dialog_info)
                 .show();
     }
 
-    private void saveHikeToDatabase(String name, String location, String date, boolean parking, String length, String difficulty, String hikerCount, String equipment) {
+    // THAY ĐỔI: Cập nhật chữ ký hàm
+    private void saveHikeToDatabase(String name, String location, String date, boolean parking, String length, String difficulty, String hikerCount, String equipment, String description) {
 
         Hike hike = (hikeToEdit == null) ? new Hike() : hikeToEdit;
 
@@ -184,9 +182,10 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         hike.setDateOfHike(date);
         hike.setLengthOfHike(length);
         hike.setDifficultyLevel(difficulty);
-        hike.setParkingAvailable(parking); // Giá trị boolean đã được xử lý
+        hike.setParkingAvailable(parking);
         hike.setHikerCount(hikerCount);
         hike.setEquipment(equipment);
+        hike.setDescription(description); // THÊM MỚI
 
         if (hikeToEdit == null) {
             long id = dbHelper.addHike(hike);

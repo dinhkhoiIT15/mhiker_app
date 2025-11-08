@@ -8,8 +8,7 @@
     <string name="parking_available_hint">Parking Available (Required)</string>
     <string name="length_of_hike_hint">Length of Hike (km) (Required)</string>
     <string name="difficulty_hint">Difficulty Level (Required)</string>
-
-    <string name="save_hike">Save Hike</string>
+    <string name="description_optional">Description (Optional)</string> <string name="save_hike">Save Hike</string>
     <string name="hike_name">Hike Name</string>
     <string name="location">Location</string>
     <string name="date">Date</string>
