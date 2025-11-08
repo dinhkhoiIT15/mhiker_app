@@ -12,8 +12,8 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "M_Hiker.db";
-    // THAY ĐỔI: Tăng phiên bản CSDL lên 6 để buộc onUpgrade
-    private static final int DATABASE_VERSION = 6;
+    // THAY ĐỔI: Tăng phiên bản CSDL lên 7 để thêm cột Description
+    private static final int DATABASE_VERSION = 7;
 
     public static final String TABLE_HIKES = "hikes";
     public static final String COLUMN_ID = "_id";
@@ -23,6 +23,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PARKING = "parking";
     public static final String COLUMN_LENGTH = "length";
     public static final String COLUMN_DIFFICULTY = "difficulty";
+    public static final String COLUMN_DESCRIPTION = "description"; // THÊM MỚI
     public static final String COLUMN_HIKER_COUNT = "hiker_count";
     public static final String COLUMN_EQUIPMENT = "equipment";
 
@@ -43,8 +44,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_PARKING + " INTEGER NOT NULL, " +
                     COLUMN_LENGTH + " TEXT NOT NULL, " +
                     COLUMN_DIFFICULTY + " TEXT NOT NULL, " +
+                    COLUMN_DESCRIPTION + " TEXT, " + // THÊM MỚI
                     COLUMN_HIKER_COUNT + " TEXT, " +
-                    COLUMN_EQUIPMENT + " TEXT);"; // (Đã xóa cột Description)
+                    COLUMN_EQUIPMENT + " TEXT);";
 
     private static final String CREATE_TABLE_OBSERVATIONS =
             "CREATE TABLE " + TABLE_OBSERVATIONS + " (" +
@@ -68,7 +70,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Xóa bảng cũ và tạo lại
+        // Xóa bảng cũ và tạo lại (Chiến lược đơn giản cho coursework)
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_OBSERVATIONS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_HIKES);
         onCreate(db);
@@ -83,6 +85,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_PARKING, hike.isParkingAvailable() ? 1 : 0);
         values.put(COLUMN_LENGTH, hike.getLengthOfHike());
         values.put(COLUMN_DIFFICULTY, hike.getDifficultyLevel());
+        values.put(COLUMN_DESCRIPTION, hike.getDescription()); // THÊM MỚI
         values.put(COLUMN_HIKER_COUNT, hike.getHikerCount());
         values.put(COLUMN_EQUIPMENT, hike.getEquipment());
 
@@ -129,6 +132,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_PARKING, hike.isParkingAvailable() ? 1 : 0);
         values.put(COLUMN_LENGTH, hike.getLengthOfHike());
         values.put(COLUMN_DIFFICULTY, hike.getDifficultyLevel());
+        values.put(COLUMN_DESCRIPTION, hike.getDescription()); // THÊM MỚI
         values.put(COLUMN_HIKER_COUNT, hike.getHikerCount());
         values.put(COLUMN_EQUIPMENT, hike.getEquipment());
 
@@ -226,6 +230,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         hike.setParkingAvailable(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PARKING)) == 1);
         hike.setLengthOfHike(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LENGTH)));
         hike.setDifficultyLevel(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DIFFICULTY)));
+        hike.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION))); // THÊM MỚI
         hike.setHikerCount(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKER_COUNT)));
         hike.setEquipment(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EQUIPMENT)));
         return hike;

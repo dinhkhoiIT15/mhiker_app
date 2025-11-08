@@ -11,16 +11,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-// THAY ĐỔI: Import Menu
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Button; // Giữ lại cho nút Add Observation mới
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.button.MaterialButton; // THAY ĐỔI: Import mới
-import com.google.android.material.floatingactionbutton.FloatingActionButton; // Import này không còn cần thiết
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,21 +27,20 @@ import java.util.List;
 public class HikeDetailActivity extends AppCompatActivity implements ObservationAdapter.OnObservationListener {
 
     private TextView tvName, tvLocation, tvDate, tvParking, tvLength, tvDifficulty, tvHikerCount, tvEquipment;
-    // ĐÃ XÓA: private Button btnEdit, btnDelete;
+    private TextView tvDetailDescription; // THÊM MỚI
     private Hike hike;
     private DatabaseHelper dbHelper;
 
     private RecyclerView rvObservations;
     private ObservationAdapter observationAdapter;
     private List<Observation> observationList;
-    // ĐÃ XÓA: private FloatingActionButton fabAddObservation;
-    private MaterialButton btnAddObservation; // THÊM MỚI: Button Add Observation
+    private MaterialButton btnAddObservation;
 
     private final ActivityResultLauncher<Intent> editHikeLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {
-                    loadHikeDetails(); // Tải lại chi tiết sau khi chỉnh sửa
+                    loadHikeDetails();
                 }
             });
 
@@ -50,7 +48,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {
-                    loadObservations(); // Chỉ cần tải lại danh sách observation
+                    loadObservations();
                 }
             });
 
@@ -65,7 +63,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            // Tiêu đề sẽ được đặt trong loadHikeDetails()
         }
         toolbar.setNavigationOnClickListener(v -> finish());
 
@@ -77,17 +74,14 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         tvDifficulty = findViewById(R.id.tvDetailDifficulty);
         tvHikerCount = findViewById(R.id.tvDetailHikerCount);
         tvEquipment = findViewById(R.id.tvDetailEquipment);
-        // ĐÃ XÓA: findViewById cho btnEdit, btnDelete
+        tvDetailDescription = findViewById(R.id.tvDetailDescription); // THÊM MỚI
 
         rvObservations = findViewById(R.id.rvObservations);
-        btnAddObservation = findViewById(R.id.btnAddObservation); // THÊM MỚI: findViewById cho nút mới
+        btnAddObservation = findViewById(R.id.btnAddObservation);
         setupObservationRecyclerView();
 
-        loadHikeDetails(); // Tải dữ liệu hike lần đầu
+        loadHikeDetails();
 
-        // ĐÃ XÓA: setOnClickListener cho btnEdit, btnDelete
-
-        // THÊM MỚI: setOnClickListener cho nút Add Observation mới
         btnAddObservation.setOnClickListener(v -> {
             if (hike != null) {
                 Intent intent = new Intent(HikeDetailActivity.this, AddObservationActivity.class);
@@ -99,7 +93,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         });
     }
 
-    // THÊM MỚI: Inflate menu trên Toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -107,7 +100,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         return true;
     }
 
-    // THÊM MỚI: Xử lý sự kiện click item trên menu Toolbar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -134,11 +126,10 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
 
     private void setupObservationRecyclerView() {
         observationList = new ArrayList<>();
-        // Đặt nestedScrollingEnabled=false để tránh xung đột cuộn
         rvObservations.setLayoutManager(new LinearLayoutManager(this) {
             @Override
             public boolean canScrollVertically() {
-                return false; // Ngăn RecyclerView cuộn độc lập
+                return false;
             }
         });
         observationAdapter = new ObservationAdapter(observationList, this);
@@ -149,16 +140,13 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
 
     private void loadHikeDetails() {
         long hikeId;
-        // Ưu tiên ID từ Intent nếu có (khi mở lần đầu)
         if (getIntent().hasExtra("HIKE_ID")) {
             hikeId = getIntent().getLongExtra("HIKE_ID", -1);
-            getIntent().removeExtra("HIKE_ID"); // Xóa ID khỏi intent để lần sau không dùng lại nhầm
+            getIntent().removeExtra("HIKE_ID");
         }
-        // Nếu không có từ Intent (ví dụ sau khi edit quay lại), dùng ID từ object 'hike' hiện tại
         else if (hike != null) {
             hikeId = hike.getId();
         }
-        // Trường hợp không có ID nào
         else {
             Toast.makeText(this, "Error: Hike ID not found.", Toast.LENGTH_SHORT).show();
             finish();
@@ -171,35 +159,37 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
             return;
         }
 
-        // Tải lại hike từ CSDL bằng ID mới nhất
         hike = dbHelper.getHikeById(hikeId);
 
         if (hike == null) {
             Toast.makeText(this, "Hike not found. It might have been deleted.", Toast.LENGTH_SHORT).show();
-            finish(); // Đóng activity nếu hike không tồn tại
+            finish();
             return;
         }
 
-        // Cập nhật giao diện với dữ liệu mới
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(hike.getName()); // Đặt tiêu đề Toolbar
+            getSupportActionBar().setTitle(hike.getName());
         }
         tvName.setText(hike.getName());
-        tvLocation.setText(hike.getLocation()); // Bỏ chữ "Location: " để dùng icon
-        tvDate.setText(hike.getDateOfHike()); // Bỏ chữ "Date: "
-        tvParking.setText(hike.isParkingAvailable() ? "Yes" : "No"); // Bỏ chữ "Parking: "
-        tvLength.setText(hike.getLengthOfHike() + " km"); // Bỏ chữ "Length: "
-        tvDifficulty.setText(hike.getDifficultyLevel()); // Bỏ chữ "Difficulty: "
-        tvHikerCount.setText(hike.getHikerCount().isEmpty() ? "N/A" : hike.getHikerCount()); // Bỏ chữ "Hiker Count: "
-        tvEquipment.setText(hike.getEquipment().isEmpty() ? "N/A" : hike.getEquipment()); // Bỏ chữ "Equipment: "
+        tvLocation.setText(hike.getLocation());
+        tvDate.setText(hike.getDateOfHike());
+        tvParking.setText(hike.isParkingAvailable() ? "Yes" : "No");
+        tvLength.setText(hike.getLengthOfHike() + " km");
+        tvDifficulty.setText(hike.getDifficultyLevel());
+        tvHikerCount.setText(hike.getHikerCount().isEmpty() ? "N/A" : hike.getHikerCount());
+        tvEquipment.setText(hike.getEquipment().isEmpty() ? "N/A" : hike.getEquipment());
 
-        loadObservations(); // Tải danh sách observations cho hike này
+        // THÊM MỚI: Hiển thị description
+        String description = hike.getDescription();
+        tvDetailDescription.setText(description == null || description.isEmpty() ? "N/A" : description);
+
+        loadObservations();
     }
 
     private void loadObservations() {
         if (hike != null) {
             observationList = dbHelper.getAllObservationsForHike(hike.getId());
-            observationAdapter.setData(observationList); // Cập nhật dữ liệu cho Adapter
+            observationAdapter.setData(observationList);
         }
     }
 
@@ -210,15 +200,14 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 .setPositiveButton("Delete", (dialog, which) -> {
                     dbHelper.deleteHike(hike.getId());
                     Toast.makeText(HikeDetailActivity.this, "'" + hike.getName() + "' deleted.", Toast.LENGTH_SHORT).show();
-                    setResult(Activity.RESULT_OK); // Đặt kết quả để MainActivity có thể cập nhật list
-                    finish(); // Đóng màn hình chi tiết sau khi xóa
+                    setResult(Activity.RESULT_OK);
+                    finish();
                 })
                 .setNegativeButton("Cancel", null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }
 
-    // Các phương thức xử lý click trên item Observation (giữ nguyên)
     @Override
     public void onEditClick(Observation observation) {
         Intent intent = new Intent(this, AddObservationActivity.class);
@@ -234,7 +223,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 .setPositiveButton("Delete", (dialog, which) -> {
                     dbHelper.deleteObservation(observation.getId());
                     Toast.makeText(this, "Observation deleted.", Toast.LENGTH_SHORT).show();
-                    loadObservations(); // Tải lại danh sách sau khi xóa
+                    loadObservations();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
