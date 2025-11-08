@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?android:attr/windowBackground" tools:context=".HikeDetailActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar_hike_detail"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:titleTextColor="@color/white"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvDetailName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="?android:attr/textColorPrimary"
+                        tools:text="Name of the Hike"
+                        android:layout_marginBottom="8dp"/>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
+                        <ImageView android:layout_width="20dp" android:layout_height="20dp" app:srcCompat="@drawable/ic_location" android:layout_marginEnd="8dp" app:tint="?android:attr/textColorSecondary"/>
+                        <TextView android:id="@+id/tvDetailLocation" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="?android:attr/textColorSecondary" tools:text="Location: Da Lat" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
+                        <ImageView android:layout_width="20dp" android:layout_height="20dp" app:srcCompat="@drawable/ic_date" android:layout_marginEnd="8dp" app:tint="?android:attr/textColorSecondary"/>
+                        <TextView android:id="@+id/tvDetailDate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="?android:attr/textColorSecondary" tools:text="Date: Oct 18, 2025" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
+                        <ImageView android:layout_width="20dp" android:layout_height="20dp" app:srcCompat="@drawable/ic_parking" android:layout_marginEnd="8dp" app:tint="?android:attr/textColorSecondary"/>
+                        <TextView android:id="@+id/tvDetailParking" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="?android:attr/textColorSecondary" tools:text="Parking: Yes" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
+                        <ImageView android:layout_width="20dp" android:layout_height="20dp" app:srcCompat="@drawable/ic_length" android:layout_marginEnd="8dp" app:tint="?android:attr/textColorSecondary"/>
+                        <TextView android:id="@+id/tvDetailLength" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="?android:attr/textColorSecondary" tools:text="Length: 10 km" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
+                        <ImageView android:layout_width="20dp" android:layout_height="20dp" app:srcCompat="@drawable/ic_difficulty" android:layout_marginEnd="8dp" app:tint="?android:attr/textColorSecondary"/>
+                        <TextView android:id="@+id/tvDetailDifficulty" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="?android:attr/textColorSecondary" tools:text="Difficulty: Hard" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
+                        <ImageView android:layout_width="20dp" android:layout_height="20dp" app:srcCompat="@drawable/ic_hiker_count" android:layout_marginEnd="8dp" app:tint="?android:attr/textColorSecondary"/>
+                        <TextView android:id="@+id/tvDetailHikerCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="?android:attr/textColorSecondary" tools:text="Hiker Count: 5" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" > <ImageView android:layout_width="20dp" android:layout_height="20dp" app:srcCompat="@drawable/ic_equipment" android:layout_marginEnd="8dp" app:tint="?android:attr/textColorSecondary"/>
+                        <TextView android:id="@+id/tvDetailEquipment" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="?android:attr/textColorSecondary" tools:text="Equipment: N/A" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/observations_title"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorPrimary"
+                android:layout_marginBottom="8dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvObservations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" tools:listitem="@layout/observation_item"
+                tools:itemCount="2"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddObservation"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/add_observation"
+                app:icon="@android:drawable/ic_menu_add"
+                app:iconTint="?attr/colorPrimary"
+                android:textColor="?attr/colorPrimary"
+                app:strokeColor="?attr/colorPrimary" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

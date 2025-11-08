@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">MHiker_App</string>
+    <string name="add_new_hike">Add new hike</string>
+
+    <string name="hike_name_hint">Name of Hike (Required)</string>
+    <string name="location_hint">Location (Required)</string>
+    <string name="date_of_hike_hint">Date of Hike (Required)</string>
+    <string name="parking_available_hint">Parking Available (Required)</string>
+    <string name="length_of_hike_hint">Length of Hike (km) (Required)</string>
+    <string name="difficulty_hint">Difficulty Level (Required)</string>
+
+    <string name="save_hike">Save Hike</string>
+    <string name="hike_name">Hike Name</string>
+    <string name="location">Location</string>
+    <string name="date">Date</string>
+    <string name="hiker_count_optional">Hiker Count (Optional)</string>
+    <string name="equipment_optional">Equipment (Optional)</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="delete_all">Delete All</string>
+
+    <string name="observations_title">Observations</string>
+    <string name="add_observation">Add Observation</string>
+    <string name="observation_text_required">Observation (Required)</string>
+    <string name="time_of_observation_required">Time of Observation (Required)</string>
+    <string name="additional_comments_optional">Additional Comments (Optional)</string>
+    <string name="save_observation">Save Observation</string>
+
+    <string name="search_hint">Search by name...</string>
+
+
+    <string-array name="difficulty_levels">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Hard</item>
+        <item>Very Hard</item>
+    </string-array>
+
+    <string-array name="parking_options">
+        <item>Yes</item>
+        <item>No</item>
+    </string-array>
+</resources>

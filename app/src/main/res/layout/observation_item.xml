@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="0dp" android:layout_marginTop="4dp"
+    android:layout_marginEnd="0dp"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/grey_background"> <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/tvObservationText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@id/btnEditObservation"
+        android:layout_marginEnd="8dp"
+        android:textSize="16sp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textStyle="bold"
+        tools:text="Observation details go here. Could be a long text." />
+
+    <TextView
+        android:id="@+id/tvObservationTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvObservationText"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="4dp"
+        android:textSize="12sp"
+        android:textColor="?android:attr/textColorSecondary"
+        tools:text="Time: Oct 29, 2025, 10:30 AM" />
+
+    <TextView
+        android:id="@+id/tvObservationComments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvObservationTime"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:layout_toStartOf="@id/btnEditObservation"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:visibility="gone" tools:text="Additional comments..."
+        tools:visibility="visible"/>
+
+    <ImageButton
+        android:id="@+id/btnEditObservation"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/edit"
+        app:srcCompat="@drawable/ic_edit_white"
+        app:tint="?attr/colorControlNormal" /> <ImageButton
+    android:id="@+id/btnDeleteObservation"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:layout_alignParentEnd="true"
+    android:layout_below="@id/btnEditObservation"
+    android:layout_marginTop="4dp"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:contentDescription="@string/delete"
+    app:srcCompat="@drawable/ic_delete_white"
+    app:tint="?attr/colorError" /> </RelativeLayout>
+
+</com.google.android.material.card.MaterialCardView>

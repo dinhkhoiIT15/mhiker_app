@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- THAY ĐỔI: Định nghĩa bảng màu Xanh và Trắng -->
+    <color name="blue_primary">#3F51B5</color> <!-- Indigo 500 -->
+    <color name="blue_primary_dark">#303F9F</color> <!-- Indigo 700 -->
+    <color name="blue_accent">#448AFF</color> <!-- Blue A200 -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="grey_background">#F5F5F5</color> <!-- Màu nền sáng -->
+    <color name="text_primary_light">#DE000000</color> <!-- 87% Black -->
+    <color name="text_secondary_light">#8A000000</color> <!-- 54% Black -->
+
+    <!-- Màu cho Dark Theme (Dựa trên Xanh đậm) -->
+    <color name="blue_dark_primary">#7986CB</color> <!-- Indigo 300 -->
+    <color name="blue_dark_primary_dark">#5C6BC0</color> <!-- Indigo 400 -->
+    <color name="blue_dark_accent">#82B1FF</color> <!-- Blue A100 -->
+    <color name="dark_background">#121212</color> <!-- Nền tối chuẩn -->
+    <color name="surface_dark">#212121</color> <!-- Bề mặt tối -->
+    <color name="text_primary_dark">#FFFFFFFF</color> <!-- White -->
+    <color name="text_secondary_dark">#B3FFFFFF</color> <!-- 70% White -->
+
+    <!-- Màu phụ trợ (Ví dụ: cho nút Delete) -->
+    <color name="red_error">#D32F2F</color> <!-- Red 700 -->
+    <color name="red_error_dark">#FF5252</color> <!-- Red A200 -->
+
+</resources>
