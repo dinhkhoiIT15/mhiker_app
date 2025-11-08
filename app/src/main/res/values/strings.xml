@@ -8,7 +8,9 @@
     <string name="parking_available_hint">Parking Available (Required)</string>
     <string name="length_of_hike_hint">Length of Hike (km) (Required)</string>
     <string name="difficulty_hint">Difficulty Level (Required)</string>
-    <string name="description_optional">Description (Optional)</string> <string name="save_hike">Save Hike</string>
+    <string name="description_optional">Description (Optional)</string>
+
+    <string name="save_hike">Save Hike</string>
     <string name="hike_name">Hike Name</string>
     <string name="location">Location</string>
     <string name="date">Date</string>
@@ -27,7 +29,14 @@
 
     <string name="search_hint">Search by name...</string>
 
-
+    <string name="advanced_search">Advanced Search</string>
+    <string name="search">Search</string>
+    <string name="show_all_hikes">Show All Hikes</string>
+    <string name="search_by_name_optional">Name (Optional)</string>
+    <string name="search_by_location_optional">Location (Optional)</string>
+    <string name="search_by_length_optional">Min. Length (km) (Optional)</string>
+    <string name="search_by_date_optional">Date (Optional)</string>
+    <string name="reset">Reset</string>
     <string-array name="difficulty_levels">
         <item>Easy</item>
         <item>Medium</item>
