@@ -4,10 +4,14 @@
 
     <item
         android:id="@+id/action_search"
-        android:title="@string/search_hint"
+        android:title="@string/advanced_search"
         android:icon="@android:drawable/ic_menu_search"
-        app:showAsAction="ifRoom|collapseActionView"
-        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+        app:showAsAction="ifRoom|collapseActionView" />
+
+    <item
+        android:id="@+id/action_show_all"
+        android:title="@string/show_all_hikes"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_delete_all"

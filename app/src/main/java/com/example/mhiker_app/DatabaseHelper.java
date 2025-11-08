@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils; // THÊM MỚI
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "M_Hiker.db";
-    // THAY ĐỔI: Tăng phiên bản CSDL lên 7 để thêm cột Description
+    // Giữ nguyên phiên bản 7 (hoặc bất kỳ phiên bản nào bạn đã đặt sau khi thêm Description)
     private static final int DATABASE_VERSION = 7;
 
     public static final String TABLE_HIKES = "hikes";
@@ -23,7 +24,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PARKING = "parking";
     public static final String COLUMN_LENGTH = "length";
     public static final String COLUMN_DIFFICULTY = "difficulty";
-    public static final String COLUMN_DESCRIPTION = "description"; // THÊM MỚI
+    public static final String COLUMN_DESCRIPTION = "description";
     public static final String COLUMN_HIKER_COUNT = "hiker_count";
     public static final String COLUMN_EQUIPMENT = "equipment";
 
@@ -44,7 +45,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_PARKING + " INTEGER NOT NULL, " +
                     COLUMN_LENGTH + " TEXT NOT NULL, " +
                     COLUMN_DIFFICULTY + " TEXT NOT NULL, " +
-                    COLUMN_DESCRIPTION + " TEXT, " + // THÊM MỚI
+                    COLUMN_DESCRIPTION + " TEXT, " +
                     COLUMN_HIKER_COUNT + " TEXT, " +
                     COLUMN_EQUIPMENT + " TEXT);";
 
@@ -70,7 +71,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Xóa bảng cũ và tạo lại (Chiến lược đơn giản cho coursework)
+        // Xóa bảng cũ và tạo lại
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_OBSERVATIONS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_HIKES);
         onCreate(db);
@@ -85,7 +86,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_PARKING, hike.isParkingAvailable() ? 1 : 0);
         values.put(COLUMN_LENGTH, hike.getLengthOfHike());
         values.put(COLUMN_DIFFICULTY, hike.getDifficultyLevel());
-        values.put(COLUMN_DESCRIPTION, hike.getDescription()); // THÊM MỚI
+        values.put(COLUMN_DESCRIPTION, hike.getDescription());
         values.put(COLUMN_HIKER_COUNT, hike.getHikerCount());
         values.put(COLUMN_EQUIPMENT, hike.getEquipment());
 
@@ -132,7 +133,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_PARKING, hike.isParkingAvailable() ? 1 : 0);
         values.put(COLUMN_LENGTH, hike.getLengthOfHike());
         values.put(COLUMN_DIFFICULTY, hike.getDifficultyLevel());
-        values.put(COLUMN_DESCRIPTION, hike.getDescription()); // THÊM MỚI
+        values.put(COLUMN_DESCRIPTION, hike.getDescription());
         values.put(COLUMN_HIKER_COUNT, hike.getHikerCount());
         values.put(COLUMN_EQUIPMENT, hike.getEquipment());
 
@@ -140,14 +141,58 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(hike.getId())});
     }
 
+    // THAY ĐỔI: Phương thức này giờ sẽ gọi phương thức nâng cao
     public List<Hike> searchHikesByName(String query) {
+        // Gọi searchHikesAdvanced chỉ với tham số name
+        return searchHikesAdvanced(query, "", "", "");
+    }
+
+    // THÊM MỚI: Phương thức tìm kiếm nâng cao (Feature D)
+    public List<Hike> searchHikesAdvanced(String name, String location, String length, String date) {
         List<Hike> hikes = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        String sql = "SELECT * FROM " + TABLE_HIKES + " WHERE " + COLUMN_NAME + " LIKE ?";
-        String[] selectionArgs = new String[]{"%" + query + "%"};
+        // Xây dựng câu lệnh WHERE động
+        StringBuilder sql = new StringBuilder("SELECT * FROM " + TABLE_HIKES);
+        List<String> selectionArgs = new ArrayList<>();
+        List<String> whereClauses = new ArrayList<>();
 
-        Cursor cursor = db.rawQuery(sql, selectionArgs);
+        if (!TextUtils.isEmpty(name)) {
+            whereClauses.add(COLUMN_NAME + " LIKE ?");
+            selectionArgs.add("%" + name + "%");
+        }
+
+        if (!TextUtils.isEmpty(location)) {
+            whereClauses.add(COLUMN_LOCATION + " LIKE ?");
+            selectionArgs.add("%" + location + "%");
+        }
+
+        if (!TextUtils.isEmpty(date)) {
+            // Tìm kiếm khớp chính xác ngày
+            whereClauses.add(COLUMN_DATE + " = ?");
+            selectionArgs.add(date);
+        }
+
+        if (!TextUtils.isEmpty(length)) {
+            try {
+                // Đảm bảo length là một số hợp lệ
+                double minLength = Double.parseDouble(length);
+                // Cột length được lưu là TEXT, chúng ta cần CAST (chuyển đổi) nó sang REAL (số thực)
+                // để so sánh
+                whereClauses.add("CAST(" + COLUMN_LENGTH + " AS REAL) >= ?");
+                selectionArgs.add(String.valueOf(minLength));
+            } catch (NumberFormatException e) {
+                // Bỏ qua nếu người dùng nhập không phải là số
+            }
+        }
+
+        // Nếu có ít nhất một điều kiện
+        if (!whereClauses.isEmpty()) {
+            sql.append(" WHERE ").append(TextUtils.join(" AND ", whereClauses));
+        }
+
+        // Thực thi câu truy vấn
+        Cursor cursor = db.rawQuery(sql.toString(), selectionArgs.toArray(new String[0]));
 
         if (cursor.moveToFirst()) {
             do {
@@ -230,7 +275,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         hike.setParkingAvailable(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PARKING)) == 1);
         hike.setLengthOfHike(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LENGTH)));
         hike.setDifficultyLevel(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DIFFICULTY)));
-        hike.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION))); // THÊM MỚI
+        hike.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)));
         hike.setHikerCount(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKER_COUNT)));
         hike.setEquipment(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EQUIPMENT)));
         return hike;

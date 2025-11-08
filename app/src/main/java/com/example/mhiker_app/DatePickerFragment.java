@@ -19,6 +19,15 @@ public class DatePickerFragment extends DialogFragment {
         int month = c.get(Calendar.MONTH);
         int day = c.get(Calendar.DAY_OF_MONTH);
 
-        return new DatePickerDialog(requireActivity(), (DatePickerDialog.OnDateSetListener) getActivity(), year, month, day);
+        // THAY ĐỔI: Kiểm tra xem target fragment (Fragment gọi) có được set hay không
+        DatePickerDialog.OnDateSetListener listener = (DatePickerDialog.OnDateSetListener) getTargetFragment();
+
+        // Nếu không (ví dụ: được gọi từ AddHikeActivity), thì dùng Activity
+        if (listener == null) {
+            listener = (DatePickerDialog.OnDateSetListener) getActivity();
+        }
+
+        // Trả về DatePickerDialog cho listener đã xác định
+        return new DatePickerDialog(requireActivity(), listener, year, month, day);
     }
 }

@@ -11,7 +11,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import androidx.appcompat.widget.SearchView;
+// Đã xóa import: androidx.appcompat.widget.SearchView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -19,7 +19,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements HikeAdapter.OnItemClickListener {
+// THAY ĐỔI: Implement interface mới của DialogFragment
+public class MainActivity extends AppCompatActivity implements HikeAdapter.OnItemClickListener, AdvancedSearchFragment.AdvancedSearchListener {
 
     private RecyclerView recyclerView;
     private HikeAdapter hikeAdapter;
@@ -76,43 +77,17 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
 
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
-        searchView.setQueryHint(getString(R.string.search_hint));
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                performSearch(query);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                performSearch(newText);
-                return true;
-            }
-        });
-
-        searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                return true;
-            }
-
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                loadHikesFromDb();
-                return true;
-            }
-        });
-
+        // ĐÃ XÓA: Toàn bộ logic của SearchView đã được loại bỏ
         return true;
     }
 
-    private void performSearch(String query) {
-        List<Hike> searchResults = dbHelper.searchHikesByName(query);
+    // THAY ĐỔI: Tên hàm và tham số
+    private void performAdvancedSearch(String name, String location, String length, String date) {
+        List<Hike> searchResults = dbHelper.searchHikesAdvanced(name, location, length, date);
         hikeAdapter.setData(searchResults);
+        if (searchResults.isEmpty()) {
+            Toast.makeText(this, "No hikes found matching criteria.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -123,6 +98,13 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
             showDeleteAllConfirmationDialog();
             return true;
         } else if (id == R.id.action_search) {
+            // THAY ĐỔI: Mở DialogFragment thay vì SearchView
+            AdvancedSearchFragment dialog = new AdvancedSearchFragment();
+            dialog.show(getSupportFragmentManager(), "AdvancedSearchFragment");
+            return true;
+        } else if (id == R.id.action_show_all) {
+            // THÊM MỚI: Tải lại tất cả các chuyến đi
+            loadHikesFromDb();
             return true;
         }
 
@@ -141,5 +123,19 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
                 .setNegativeButton("Cancel", null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+    }
+
+    // THÊM MỚI: Phương thức callback từ AdvancedSearchFragment
+    @Override
+    public void onSearchClicked(String name, String location, String length, String date) {
+        // Khi người dùng nhấn "Search" trong dialog
+        performAdvancedSearch(name, location, length, date);
+    }
+
+    // THÊM MỚI: Phương thức callback từ AdvancedSearchFragment
+    @Override
+    public void onResetSearchClicked() {
+        // Khi người dùng nhấn "Reset" trong dialog
+        loadHikesFromDb();
     }
 }
