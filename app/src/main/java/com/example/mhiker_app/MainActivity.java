@@ -11,7 +11,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-// Đã xóa import: androidx.appcompat.widget.SearchView;
+// Đảm bảo import này tồn tại
+import androidx.appcompat.widget.SearchView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -19,7 +20,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-// THAY ĐỔI: Implement interface mới của DialogFragment
+// Implement interface mới của DialogFragment
 public class MainActivity extends AppCompatActivity implements HikeAdapter.OnItemClickListener, AdvancedSearchFragment.AdvancedSearchListener {
 
     private RecyclerView recyclerView;
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
     private List<Hike> hikeList;
     private DatabaseHelper dbHelper;
     private FloatingActionButton fabAdd;
+    private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +61,10 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
     protected void onResume() {
         super.onResume();
         loadHikesFromDb();
+        // Thu gọn search view nếu nó đang mở khi quay lại
+        if (searchView != null && !searchView.isIconified()) {
+            searchView.setIconified(true);
+        }
     }
 
     private void loadHikesFromDb() {
@@ -77,13 +83,61 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
 
-        // ĐÃ XÓA: Toàn bộ logic của SearchView đã được loại bỏ
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setQueryHint(getString(R.string.search_hint)); //
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // Không cần làm gì ở đây vì đã xử lý real-time
+                searchView.clearFocus();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // THAY ĐỔI: Chuyển logic tìm kiếm vào đây
+                // Khi người dùng gõ, thực hiện tìm kiếm ngay lập tức
+                performFastSearch(newText);
+                return true;
+            }
+        });
+
+        searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                // Khi đóng search view, tải lại danh sách đầy đủ
+                loadHikesFromDb();
+                return true;
+            }
+        });
+
         return true;
     }
 
-    // THAY ĐỔI: Tên hàm và tham số
+    // Hàm này (tìm kiếm nhanh) giờ sẽ được gọi mỗi khi gõ phím
+    private void performFastSearch(String nameQuery) {
+        // THAY ĐỔI: Nếu query rỗng, tải lại tất cả. Nếu không, thực hiện tìm kiếm.
+        if (nameQuery == null || nameQuery.trim().isEmpty()) {
+            loadHikesFromDb();
+        } else {
+            // Hàm này gọi searchHikesAdvanced chỉ với tên
+            List<Hike> searchResults = dbHelper.searchHikesByName(nameQuery);
+            hikeAdapter.setData(searchResults);
+            // Không cần hiển thị Toast nữa để tránh làm phiền khi gõ
+        }
+    }
+
+    // Hàm này (tìm kiếm nâng cao) được giữ nguyên, gọi từ dialog
     private void performAdvancedSearch(String name, String location, String length, String date) {
-        List<Hike> searchResults = dbHelper.searchHikesAdvanced(name, location, length, date);
+        List<Hike> searchResults = dbHelper.searchHikesAdvanced(name, location, length, date); //
         hikeAdapter.setData(searchResults);
         if (searchResults.isEmpty()) {
             Toast.makeText(this, "No hikes found matching criteria.", Toast.LENGTH_SHORT).show();
@@ -94,17 +148,20 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_delete_all) {
+        if (id == R.id.action_delete_all) { //
             showDeleteAllConfirmationDialog();
             return true;
-        } else if (id == R.id.action_search) {
-            // THAY ĐỔI: Mở DialogFragment thay vì SearchView
+        }
+        else if (id == R.id.action_advanced_search) { //
             AdvancedSearchFragment dialog = new AdvancedSearchFragment();
             dialog.show(getSupportFragmentManager(), "AdvancedSearchFragment");
             return true;
-        } else if (id == R.id.action_show_all) {
-            // THÊM MỚI: Tải lại tất cả các chuyến đi
+        } else if (id == R.id.action_show_all) { //
             loadHikesFromDb();
+            // Đóng/reset search view nếu đang mở
+            if (searchView != null && !searchView.isIconified()) {
+                searchView.setIconified(true);
+            }
             return true;
         }
 
@@ -116,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
                 .setTitle("Delete All Hikes")
                 .setMessage("Are you sure you want to delete ALL hikes? This action cannot be undone.")
                 .setPositiveButton("Delete All", (dialog, which) -> {
-                    dbHelper.deleteAllHikes();
+                    dbHelper.deleteAllHikes(); //
                     loadHikesFromDb();
                     Toast.makeText(MainActivity.this, "All hikes deleted.", Toast.LENGTH_SHORT).show();
                 })
@@ -125,17 +182,15 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
                 .show();
     }
 
-    // THÊM MỚI: Phương thức callback từ AdvancedSearchFragment
+    // Callback từ AdvancedSearchFragment
     @Override
     public void onSearchClicked(String name, String location, String length, String date) {
-        // Khi người dùng nhấn "Search" trong dialog
         performAdvancedSearch(name, location, length, date);
     }
 
-    // THÊM MỚI: Phương thức callback từ AdvancedSearchFragment
+    // Callback từ AdvancedSearchFragment
     @Override
     public void onResetSearchClicked() {
-        // Khi người dùng nhấn "Reset" trong dialog
         loadHikesFromDb();
     }
 }

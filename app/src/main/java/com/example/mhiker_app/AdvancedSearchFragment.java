@@ -8,14 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
-
 import com.google.android.material.textfield.TextInputEditText;
-
 import java.text.DateFormat;
 import java.util.Calendar;
 
@@ -25,7 +22,6 @@ public class AdvancedSearchFragment extends DialogFragment implements DatePicker
     private Button btnPerformSearch, btnResetSearch;
     private AdvancedSearchListener listener;
 
-    // Interface để gửi dữ liệu về MainActivity
     public interface AdvancedSearchListener {
         void onSearchClicked(String name, String location, String length, String date);
         void onResetSearchClicked();
@@ -35,7 +31,6 @@ public class AdvancedSearchFragment extends DialogFragment implements DatePicker
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         try {
-            // Ép kiểu MainActivity thành listener
             listener = (AdvancedSearchListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement AdvancedSearchListener");
@@ -57,9 +52,7 @@ public class AdvancedSearchFragment extends DialogFragment implements DatePicker
         btnResetSearch = view.findViewById(R.id.btnResetSearch);
 
         etSearchDate.setOnClickListener(v -> {
-            // Sử dụng getParentFragmentManager() để hiển thị DatePicker
             DatePickerFragment datePicker = new DatePickerFragment();
-            // Đặt Fragment này làm mục tiêu để nhận callback onDateSet
             datePicker.setTargetFragment(this, 0);
             datePicker.show(getParentFragmentManager(), "datePickerSearch");
         });
@@ -69,9 +62,8 @@ public class AdvancedSearchFragment extends DialogFragment implements DatePicker
             String location = etSearchLocation.getText().toString().trim();
             String length = etSearchLength.getText().toString().trim();
             String date = etSearchDate.getText().toString().trim();
-            // Gọi interface về MainActivity
             listener.onSearchClicked(name, location, length, date);
-            dismiss(); // Đóng dialog
+            dismiss();
         });
 
         btnResetSearch.setOnClickListener(v -> {
@@ -79,16 +71,14 @@ public class AdvancedSearchFragment extends DialogFragment implements DatePicker
             etSearchLocation.setText("");
             etSearchLength.setText("");
             etSearchDate.setText("");
-            // Gọi interface về MainActivity
             listener.onResetSearchClicked();
-            dismiss(); // Đóng dialog
+            dismiss();
         });
 
         builder.setView(view);
         return builder.create();
     }
 
-    // Callback từ DatePickerFragment
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         Calendar c = Calendar.getInstance();
@@ -96,7 +86,6 @@ public class AdvancedSearchFragment extends DialogFragment implements DatePicker
         c.set(Calendar.MONTH, month);
         c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         String currentDateString = DateFormat.getDateInstance(DateFormat.MEDIUM).format(c.getTime());
-        // Hiển thị ngày đã chọn lên etSearchDate
         etSearchDate.setText(currentDateString);
     }
 }

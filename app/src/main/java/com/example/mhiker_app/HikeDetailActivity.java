@@ -14,20 +14,17 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class HikeDetailActivity extends AppCompatActivity implements ObservationAdapter.OnObservationListener {
 
     private TextView tvName, tvLocation, tvDate, tvParking, tvLength, tvDifficulty, tvHikerCount, tvEquipment;
-    private TextView tvDetailDescription; // THÊM MỚI
+    private TextView tvDetailDescription;
     private Hike hike;
     private DatabaseHelper dbHelper;
 
@@ -74,7 +71,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         tvDifficulty = findViewById(R.id.tvDetailDifficulty);
         tvHikerCount = findViewById(R.id.tvDetailHikerCount);
         tvEquipment = findViewById(R.id.tvDetailEquipment);
-        tvDetailDescription = findViewById(R.id.tvDetailDescription); // THÊM MỚI
+        tvDetailDescription = findViewById(R.id.tvDetailDescription);
 
         rvObservations = findViewById(R.id.rvObservations);
         btnAddObservation = findViewById(R.id.btnAddObservation);
@@ -179,7 +176,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         tvHikerCount.setText(hike.getHikerCount().isEmpty() ? "N/A" : hike.getHikerCount());
         tvEquipment.setText(hike.getEquipment().isEmpty() ? "N/A" : hike.getEquipment());
 
-        // THÊM MỚI: Hiển thị description
         String description = hike.getDescription();
         tvDetailDescription.setText(description == null || description.isEmpty() ? "N/A" : description);
 

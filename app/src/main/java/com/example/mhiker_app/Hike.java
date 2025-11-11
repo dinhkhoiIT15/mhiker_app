@@ -10,14 +10,13 @@ public class Hike implements Serializable {
     private boolean parkingAvailable;
     private String lengthOfHike;
     private String difficultyLevel;
-    private String description; // THÊM MỚI
+    private String description;
     private String hikerCount;
     private String equipment;
 
     public Hike() {
     }
 
-    // THAY ĐỔI: Thêm 'description' vào constructor
     public Hike(long id, String name, String location, String dateOfHike, boolean parkingAvailable, String lengthOfHike, String difficultyLevel, String description, String hikerCount, String equipment) {
         this.id = id;
         this.name = name;
@@ -26,7 +25,7 @@ public class Hike implements Serializable {
         this.parkingAvailable = parkingAvailable;
         this.lengthOfHike = lengthOfHike;
         this.difficultyLevel = difficultyLevel;
-        this.description = description; // THÊM MỚI
+        this.description = description;
         this.hikerCount = hikerCount;
         this.equipment = equipment;
     }
@@ -88,7 +87,6 @@ public class Hike implements Serializable {
         this.difficultyLevel = difficultyLevel;
     }
 
-    // THÊM MỚI: get/setDescription()
     public String getDescription() {
         return description;
     }
