@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/mhiker_app/HikeDetailActivity.java
 package com.example.mhiker_app;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -14,8 +15,10 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+// XÓA: import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
     private ObservationAdapter observationAdapter;
     private List<Observation> observationList;
     private MaterialButton btnAddObservation;
+    private static final int SNACKBAR_DURATION = 2500; // 2.5 giây
 
     private final ActivityResultLauncher<Intent> editHikeLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -63,6 +67,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         }
         toolbar.setNavigationOnClickListener(v -> finish());
 
+        // Tên biến này khớp với mã nguồn mới của bạn
         tvName = findViewById(R.id.tvDetailName);
         tvLocation = findViewById(R.id.tvDetailLocation);
         tvDate = findViewById(R.id.tvDetailDate);
@@ -85,7 +90,13 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 intent.putExtra("HIKE_ID", hike.getId());
                 observationLauncher.launch(intent);
             } else {
-                Toast.makeText(this, "Cannot add observation, hike data is missing.", Toast.LENGTH_SHORT).show();
+                // THAY THẾ TOAST
+                SnackbarHelper.showCustomSnackbar(
+                        btnAddObservation,
+                        "Cannot add observation, hike data is missing.",
+                        SnackbarHelper.TYPE_ERROR,
+                        SNACKBAR_DURATION
+                );
             }
         });
     }
@@ -106,14 +117,26 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 intent.putExtra("EDIT_HIKE", hike);
                 editHikeLauncher.launch(intent);
             } else {
-                Toast.makeText(this, "Cannot edit, hike data is missing.", Toast.LENGTH_SHORT).show();
+                // THAY THẾ TOAST
+                SnackbarHelper.showCustomSnackbar(
+                        btnAddObservation,
+                        "Cannot edit, hike data is missing.",
+                        SnackbarHelper.TYPE_ERROR,
+                        SNACKBAR_DURATION
+                );
             }
             return true;
         } else if (id == R.id.action_delete_hike) {
             if (hike != null) {
                 showDeleteConfirmationDialog();
             } else {
-                Toast.makeText(this, "Cannot delete, hike data is missing.", Toast.LENGTH_SHORT).show();
+                // THAY THẾ TOAST
+                SnackbarHelper.showCustomSnackbar(
+                        btnAddObservation,
+                        "Cannot delete, hike data is missing.",
+                        SnackbarHelper.TYPE_ERROR,
+                        SNACKBAR_DURATION
+                );
             }
             return true;
         } else {
@@ -137,6 +160,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
 
     private void loadHikeDetails() {
         long hikeId;
+        // Logic lấy ID từ mã nguồn mới của bạn
         if (getIntent().hasExtra("HIKE_ID")) {
             hikeId = getIntent().getLongExtra("HIKE_ID", -1);
             getIntent().removeExtra("HIKE_ID");
@@ -145,13 +169,28 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
             hikeId = hike.getId();
         }
         else {
-            Toast.makeText(this, "Error: Hike ID not found.", Toast.LENGTH_SHORT).show();
+            // THAY THẾ TOAST
+            // Không thể dùng btnAddObservation vì nó có thể chưa được khởi tạo
+            // Dùng view gốc
+            View rootView = findViewById(android.R.id.content);
+            SnackbarHelper.showCustomSnackbar(
+                    rootView,
+                    "Error: Hike ID not found.",
+                    SnackbarHelper.TYPE_ERROR,
+                    SNACKBAR_DURATION
+            );
             finish();
             return;
         }
 
         if (hikeId == -1) {
-            Toast.makeText(this, "Error: Invalid Hike ID.", Toast.LENGTH_SHORT).show();
+            View rootView = findViewById(android.R.id.content);
+            SnackbarHelper.showCustomSnackbar(
+                    rootView,
+                    "Error: Invalid Hike ID.",
+                    SnackbarHelper.TYPE_ERROR,
+                    SNACKBAR_DURATION
+            );
             finish();
             return;
         }
@@ -159,11 +198,18 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         hike = dbHelper.getHikeById(hikeId);
 
         if (hike == null) {
-            Toast.makeText(this, "Hike not found. It might have been deleted.", Toast.LENGTH_SHORT).show();
+            View rootView = findViewById(android.R.id.content);
+            SnackbarHelper.showCustomSnackbar(
+                    rootView,
+                    "Hike not found. It might have been deleted.",
+                    SnackbarHelper.TYPE_INFO,
+                    SNACKBAR_DURATION
+            );
             finish();
             return;
         }
 
+        // Tải dữ liệu (dùng tên phương thức mới)
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(hike.getName());
         }
@@ -195,6 +241,9 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 .setMessage("Are you sure you want to delete '" + hike.getName() + "'? All its observations will also be deleted. This action cannot be undone.")
                 .setPositiveButton("Delete", (dialog, which) -> {
                     dbHelper.deleteHike(hike.getId());
+                    // THAY THẾ TOAST
+                    // Không thể dùng view ở đây vì activity sắp đóng
+                    // Tạm thời giữ Toast hoặc chấp nhận không có thông báo
                     Toast.makeText(HikeDetailActivity.this, "'" + hike.getName() + "' deleted.", Toast.LENGTH_SHORT).show();
                     setResult(Activity.RESULT_OK);
                     finish();
@@ -218,7 +267,13 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 .setMessage("Are you sure you want to delete this observation?")
                 .setPositiveButton("Delete", (dialog, which) -> {
                     dbHelper.deleteObservation(observation.getId());
-                    Toast.makeText(this, "Observation deleted.", Toast.LENGTH_SHORT).show();
+                    // THAY THẾ TOAST
+                    SnackbarHelper.showCustomSnackbar(
+                            btnAddObservation,
+                            "Observation deleted.",
+                            SnackbarHelper.TYPE_INFO,
+                            SNACKBAR_DURATION
+                    );
                     loadObservations();
                 })
                 .setNegativeButton("Cancel", null)
