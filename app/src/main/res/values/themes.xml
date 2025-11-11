@@ -1,24 +1,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <!-- THAY ĐỔI: Cập nhật theme sáng (Light) -->
     <style name="Theme.MHiker_App" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
         <item name="colorPrimary">@color/blue_primary</item>
         <item name="colorPrimaryVariant">@color/blue_primary_dark</item>
         <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/blue_accent</item>
-        <item name="colorSecondaryVariant">@color/blue_accent</item> <!-- Có thể dùng màu khác nếu muốn -->
+        <item name="colorSecondaryVariant">@color/blue_accent</item>
         <item name="colorOnSecondary">@color/white</item>
-        <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
-        <item name="android:windowBackground">@color/grey_background</item> <!-- Nền sáng -->
+        <item name="android:windowBackground">@color/grey_background</item>
         <item name="android:textColorPrimary">@color/text_primary_light</item>
         <item name="android:textColorSecondary">@color/text_secondary_light</item>
         <item name="colorError">@color/red_error</item>
         <item name="colorOnError">@color/white</item>
-        <item name="colorSurface">@color/white</item> <!-- Màu nền của CardView, Dialog,... -->
-        <item name="colorOnSurface">@color/text_primary_light</item> <!-- Màu chữ trên Surface -->
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/text_primary_light</item>
     </style>
 </resources>
