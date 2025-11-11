@@ -48,4 +48,24 @@
         <item>Yes</item>
         <item>No</item>
     </string-array>
+
+    <string name="logout">Logout</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="register_here">Register here</string>
+    <string name="create_account">Create Account</string>
+    <string name="full_name">Full Name (Required)</string>
+    <string name="phone_number">Phone Number (Required)</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="register">Register</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="login_here">Login here</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="phone_number_for_verification">Phone Number (for verification)</string>
+    <string name="new_password">New Password</string>
+    <string name="back_to_login">Back to Login</string>
+
 </resources>

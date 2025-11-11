@@ -1,3 +1,5 @@
+// app/src/main/java/com/example/mhiker_app/DatabaseHelper.java
+
 package com.example.mhiker_app;
 
 import android.content.ContentValues;
@@ -5,7 +7,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.text.TextUtils; // THÊM MỚI
+import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,9 +15,10 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "M_Hiker.db";
-    // Giữ nguyên phiên bản 7 (hoặc bất kỳ phiên bản nào bạn đã đặt sau khi thêm Description)
-    private static final int DATABASE_VERSION = 7;
+    // THAY ĐỔI: Tăng phiên bản DB để thêm bảng Users
+    private static final int DATABASE_VERSION = 8;
 
+    // Bảng Hikes
     public static final String TABLE_HIKES = "hikes";
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_NAME = "name";
@@ -28,12 +31,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_HIKER_COUNT = "hiker_count";
     public static final String COLUMN_EQUIPMENT = "equipment";
 
+    // Bảng Observations
     public static final String TABLE_OBSERVATIONS = "observations";
     public static final String COLUMN_OBS_ID = "_id";
     public static final String COLUMN_OBS_TEXT = "observation_text";
     public static final String COLUMN_OBS_TIME = "observation_time";
     public static final String COLUMN_OBS_COMMENTS = "additional_comments";
     public static final String COLUMN_HIKE_ID_FK = "hike_id";
+
+    // THÊM MỚI: Bảng Users
+    public static final String TABLE_USERS = "users";
+    public static final String COLUMN_USER_ID = "_id";
+    public static final String COLUMN_USER_NAME = "name";
+    public static final String COLUMN_USER_USERNAME = "username";
+    public static final String COLUMN_USER_PASSWORD = "password";
+    public static final String COLUMN_USER_PHONE = "phone_number";
 
 
     private static final String CREATE_TABLE_HIKES =
@@ -58,6 +70,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_HIKE_ID_FK + " INTEGER, " +
                     "FOREIGN KEY(" + COLUMN_HIKE_ID_FK + ") REFERENCES " + TABLE_HIKES + "(" + COLUMN_ID + "));";
 
+    // THÊM MỚI: Câu lệnh tạo bảng Users
+    private static final String CREATE_TABLE_USERS =
+            "CREATE TABLE " + TABLE_USERS + " (" +
+                    COLUMN_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_USER_NAME + " TEXT NOT NULL, " +
+                    COLUMN_USER_USERNAME + " TEXT NOT NULL UNIQUE, " + // Đảm bảo username là duy nhất
+                    COLUMN_USER_PASSWORD + " TEXT NOT NULL, " +
+                    COLUMN_USER_PHONE + " TEXT);";
+
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -67,6 +88,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_HIKES);
         db.execSQL(CREATE_TABLE_OBSERVATIONS);
+        db.execSQL(CREATE_TABLE_USERS); // THÊM MỚI: Tạo bảng users
     }
 
     @Override
@@ -74,8 +96,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // Xóa bảng cũ và tạo lại
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_OBSERVATIONS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_HIKES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS); // THÊM MỚI: Xóa bảng users
         onCreate(db);
     }
+
+    // -----------------------------------------------------------------
+    // PHƯƠNG THỨC CHO HIKE (GIỮ NGUYÊN)
+    // -----------------------------------------------------------------
 
     public long addHike(Hike hike) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -141,18 +168,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(hike.getId())});
     }
 
-    // THAY ĐỔI: Phương thức này giờ sẽ gọi phương thức nâng cao
     public List<Hike> searchHikesByName(String query) {
-        // Gọi searchHikesAdvanced chỉ với tham số name
         return searchHikesAdvanced(query, "", "", "");
     }
 
-    // THÊM MỚI: Phương thức tìm kiếm nâng cao (Feature D)
     public List<Hike> searchHikesAdvanced(String name, String location, String length, String date) {
         List<Hike> hikes = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        // Xây dựng câu lệnh WHERE động
         StringBuilder sql = new StringBuilder("SELECT * FROM " + TABLE_HIKES);
         List<String> selectionArgs = new ArrayList<>();
         List<String> whereClauses = new ArrayList<>();
@@ -168,30 +191,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         if (!TextUtils.isEmpty(date)) {
-            // Tìm kiếm khớp chính xác ngày
             whereClauses.add(COLUMN_DATE + " = ?");
             selectionArgs.add(date);
         }
 
         if (!TextUtils.isEmpty(length)) {
             try {
-                // Đảm bảo length là một số hợp lệ
                 double minLength = Double.parseDouble(length);
-                // Cột length được lưu là TEXT, chúng ta cần CAST (chuyển đổi) nó sang REAL (số thực)
-                // để so sánh
                 whereClauses.add("CAST(" + COLUMN_LENGTH + " AS REAL) >= ?");
                 selectionArgs.add(String.valueOf(minLength));
             } catch (NumberFormatException e) {
-                // Bỏ qua nếu người dùng nhập không phải là số
+                // Bỏ qua
             }
         }
 
-        // Nếu có ít nhất một điều kiện
         if (!whereClauses.isEmpty()) {
             sql.append(" WHERE ").append(TextUtils.join(" AND ", whereClauses));
         }
 
-        // Thực thi câu truy vấn
         Cursor cursor = db.rawQuery(sql.toString(), selectionArgs.toArray(new String[0]));
 
         if (cursor.moveToFirst()) {
@@ -218,6 +235,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.delete(TABLE_HIKES, null, null);
         db.close();
     }
+
+    // -----------------------------------------------------------------
+    // PHƯƠNG THỨC CHO OBSERVATION (GIỮ NGUYÊN)
+    // -----------------------------------------------------------------
 
     public long addObservation(Observation observation) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -266,6 +287,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    // -----------------------------------------------------------------
+    // PHƯƠNG THỨC CURSOR (GIỮ NGUYÊN)
+    // -----------------------------------------------------------------
+
     private Hike cursorToHike(Cursor cursor) {
         Hike hike = new Hike();
         hike.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)));
@@ -289,5 +314,88 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         observation.setAdditionalComments(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_OBS_COMMENTS)));
         observation.setHikeId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_HIKE_ID_FK)));
         return observation;
+    }
+
+    // -----------------------------------------------------------------
+    // THÊM MỚI: CÁC PHƯƠNG THỨC CHO USER
+    // -----------------------------------------------------------------
+
+    /**
+     * Thêm người dùng mới (dùng cho Đăng ký)
+     */
+    public long addUser(User user) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USER_NAME, user.getName());
+        values.put(COLUMN_USER_USERNAME, user.getUsername());
+        values.put(COLUMN_USER_PASSWORD, user.getPassword()); // Trong ứng dụng thực tế, bạn NÊN mã hóa mật khẩu này
+        values.put(COLUMN_USER_PHONE, user.getPhoneNumber());
+
+        // insert trả về -1 nếu lỗi, ví dụ như 'username' bị trùng
+        long id = db.insert(TABLE_USERS, null, values);
+        db.close();
+        return id;
+    }
+
+    /**
+     * Kiểm tra xem username đã tồn tại chưa
+     */
+    public boolean checkUsernameExists(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_USER_ID},
+                COLUMN_USER_USERNAME + " = ?",
+                new String[]{username}, null, null, null);
+
+        boolean exists = (cursor != null && cursor.getCount() > 0);
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
+        return exists;
+    }
+
+    /**
+     * Kiểm tra thông tin đăng nhập (dùng cho Đăng nhập)
+     */
+    public boolean checkUser(String username, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_USER_ID},
+                COLUMN_USER_USERNAME + " = ? AND " + COLUMN_USER_PASSWORD + " = ?",
+                new String[]{username, password}, null, null, null);
+
+        boolean loginSuccess = (cursor != null && cursor.getCount() > 0);
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
+        return loginSuccess;
+    }
+
+    /**
+     * Kiểm tra người dùng cho việc Reset Mật khẩu
+     */
+    public boolean checkUserForReset(String username, String phoneNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_USER_ID},
+                COLUMN_USER_USERNAME + " = ? AND " + COLUMN_USER_PHONE + " = ?",
+                new String[]{username, phoneNumber}, null, null, null);
+
+        boolean exists = (cursor != null && cursor.getCount() > 0);
+        if (cursor != null) cursor.close();
+        db.close();
+        return exists;
+    }
+
+    /**
+     * Cập nhật mật khẩu (dùng cho Reset Mật khẩu)
+     */
+    public int updatePassword(String username, String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USER_PASSWORD, newPassword);
+
+        // Cập nhật bảng users, nơi username khớp
+        return db.update(TABLE_USERS, values, COLUMN_USER_USERNAME + " = ?",
+                new String[]{username});
     }
 }
