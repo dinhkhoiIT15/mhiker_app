@@ -1,12 +1,11 @@
 // app/src/main/java/com/example/mhiker_app/LoginActivity.java
-
 package com.example.mhiker_app;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
-import android.widget.Toast;
+// XÓA: import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,6 +18,7 @@ public class LoginActivity extends AppCompatActivity {
     private MaterialButton btnLogin;
     private TextView tvGoToRegister, tvForgotPassword;
     private DatabaseHelper dbHelper;
+    private static final int SNACKBAR_DURATION = 2500; // 2.5 giây
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,31 +48,46 @@ public class LoginActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
 
         if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please enter username and password", Toast.LENGTH_SHORT).show();
+            // THAY THẾ TOAST
+            SnackbarHelper.showCustomSnackbar(
+                    btnLogin,
+                    "Please enter username and password",
+                    SnackbarHelper.TYPE_ERROR,
+                    SNACKBAR_DURATION
+            );
             return;
         }
 
-        // Kiểm tra thông tin đăng nhập với DB
+        // Logic kiểm tra từ mã nguồn mới của bạn
         boolean loginSuccess = dbHelper.checkUser(username, password);
 
         if (loginSuccess) {
-            // Lưu trạng thái đăng nhập vào SharedPreferences [cite: 973-977]
             SharedPreferences prefs = getSharedPreferences(SplashActivity.PREFS_NAME, MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean(SplashActivity.KEY_IS_LOGGED_IN, true);
             editor.putString("LOGGED_IN_USERNAME", username);
-            editor.apply(); // Sử dụng apply() thay vì commit() để chạy bất đồng bộ
+            editor.apply();
 
-            // Chuyển đến MainActivity
-            Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
+            // THAY THẾ TOAST
+            SnackbarHelper.showCustomSnackbar(
+                    btnLogin,
+                    "Login Successful!",
+                    SnackbarHelper.TYPE_SUCCESS,
+                    SNACKBAR_DURATION
+            );
+
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            // Xóa tất cả các Activity trước đó khỏi back stack [cite: 338, 339]
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         } else {
-            // Hiển thị thông báo lỗi
-            Toast.makeText(this, "Invalid username or password", Toast.LENGTH_SHORT).show();
+            // THAY THẾ TOAST
+            SnackbarHelper.showCustomSnackbar(
+                    btnLogin,
+                    "Invalid username or password",
+                    SnackbarHelper.TYPE_ERROR,
+                    SNACKBAR_DURATION
+            );
         }
     }
 }

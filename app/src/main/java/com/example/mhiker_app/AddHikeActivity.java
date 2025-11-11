@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/mhiker_app/AddHikeActivity.java
 package com.example.mhiker_app;
 
 import androidx.appcompat.app.AlertDialog;
@@ -11,7 +12,7 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
-import android.widget.Toast;
+// XÓA: import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -29,6 +30,7 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
     private DatabaseHelper dbHelper;
 
     private Hike hikeToEdit = null;
+    private static final int SNACKBAR_DURATION = 2500; // 2.5 giây
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +46,7 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         }
         toolbar.setNavigationOnClickListener(v -> finish());
 
+        // Ánh xạ các view - Tên biến này khớp với mã nguồn mới nhất của bạn
         etName = findViewById(R.id.etName);
         etLocation = findViewById(R.id.etLocation);
         etLength = findViewById(R.id.etLength);
@@ -97,6 +100,7 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
     private void populateDataForEdit() {
         if (hikeToEdit == null) return;
 
+        // Sử dụng các phương thức getter/setter chính xác từ mã nguồn mới của bạn
         etName.setText(hikeToEdit.getName());
         etLocation.setText(hikeToEdit.getLocation());
         etDate.setText(hikeToEdit.getDateOfHike());
@@ -106,6 +110,7 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         etDescription.setText(hikeToEdit.getDescription());
         autoCompleteDifficulty.setText(hikeToEdit.getDifficultyLevel(), false);
 
+        // Xử lý boolean cho parking
         String parkingText = hikeToEdit.isParkingAvailable() ? "Yes" : "No";
         autoCompleteParking.setText(parkingText, false);
     }
@@ -134,10 +139,17 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         String description = etDescription.getText().toString().trim();
 
         if (name.isEmpty() || location.isEmpty() || date.isEmpty() || length.isEmpty() || difficulty.isEmpty() || parkingString.isEmpty()) {
-            Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
+            // THAY THẾ TOAST
+            SnackbarHelper.showCustomSnackbar(
+                    btnSave, // View neo
+                    "Please fill all required fields",
+                    SnackbarHelper.TYPE_ERROR,
+                    SNACKBAR_DURATION
+            );
             return;
         }
 
+        // Chuyển đổi parking String sang boolean
         boolean parking = parkingString.equals("Yes");
 
         String confirmationMessage = "Please confirm the details below:\n\n" +
@@ -169,12 +181,13 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
 
         Hike hike = (hikeToEdit == null) ? new Hike() : hikeToEdit;
 
+        // Sử dụng các phương thức setter chính xác
         hike.setName(name);
         hike.setLocation(location);
         hike.setDateOfHike(date);
         hike.setLengthOfHike(length);
         hike.setDifficultyLevel(difficulty);
-        hike.setParkingAvailable(parking);
+        hike.setParkingAvailable(parking); // Gửi boolean
         hike.setHikerCount(hikerCount);
         hike.setEquipment(equipment);
         hike.setDescription(description);
@@ -182,20 +195,44 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         if (hikeToEdit == null) {
             long id = dbHelper.addHike(hike);
             if (id != -1) {
-                Toast.makeText(this, "Hike saved successfully!", Toast.LENGTH_SHORT).show();
+                // THAY THẾ TOAST
+                SnackbarHelper.showCustomSnackbar(
+                        btnSave,
+                        "Hike saved successfully!",
+                        SnackbarHelper.TYPE_SUCCESS,
+                        SNACKBAR_DURATION
+                );
                 setResult(Activity.RESULT_OK);
                 finish();
             } else {
-                Toast.makeText(this, "Error saving hike.", Toast.LENGTH_SHORT).show();
+                // THAY THẾ TOAST
+                SnackbarHelper.showCustomSnackbar(
+                        btnSave,
+                        "Error saving hike.",
+                        SnackbarHelper.TYPE_ERROR,
+                        SNACKBAR_DURATION
+                );
             }
         } else {
             int rowsAffected = dbHelper.updateHike(hike);
             if (rowsAffected > 0) {
-                Toast.makeText(this, "Hike updated successfully!", Toast.LENGTH_SHORT).show();
+                // THAY THẾ TOAST
+                SnackbarHelper.showCustomSnackbar(
+                        btnSave,
+                        "Hike updated successfully!",
+                        SnackbarHelper.TYPE_SUCCESS,
+                        SNACKBAR_DURATION
+                );
                 setResult(Activity.RESULT_OK);
                 finish();
             } else {
-                Toast.makeText(this, "Error updating hike.", Toast.LENGTH_SHORT).show();
+                // THAY THẾ TOAST
+                SnackbarHelper.showCustomSnackbar(
+                        btnSave,
+                        "Error updating hike.",
+                        SnackbarHelper.TYPE_ERROR,
+                        SNACKBAR_DURATION
+                );
             }
         }
     }

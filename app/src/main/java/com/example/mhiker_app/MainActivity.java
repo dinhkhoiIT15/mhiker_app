@@ -1,5 +1,4 @@
 // app/src/main/java/com/example/mhiker_app/MainActivity.java
-
 package com.example.mhiker_app;
 
 import androidx.appcompat.app.AlertDialog;
@@ -9,13 +8,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
-import android.content.SharedPreferences; // THÊM MỚI
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import androidx.appcompat.widget.SearchView;
-import android.widget.Toast;
+import android.widget.Toast; // Giữ lại cho "Press back again to exit"
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -30,6 +29,11 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
     private DatabaseHelper dbHelper;
     private FloatingActionButton fabAdd;
     private SearchView searchView;
+    private static final int SNACKBAR_DURATION = 2500; // 2.5 giây
+
+    // Biến cho "Back to Exit"
+    private long backPressedTime;
+    private Toast backToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,7 +135,13 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
         List<Hike> searchResults = dbHelper.searchHikesAdvanced(name, location, length, date);
         hikeAdapter.setData(searchResults);
         if (searchResults.isEmpty()) {
-            Toast.makeText(this, "No hikes found matching criteria.", Toast.LENGTH_SHORT).show();
+            // THAY THẾ TOAST
+            SnackbarHelper.showCustomSnackbar(
+                    fabAdd, // View neo
+                    "No hikes found matching criteria.",
+                    SnackbarHelper.TYPE_INFO,
+                    SNACKBAR_DURATION
+            );
         }
     }
 
@@ -154,7 +164,6 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
             }
             return true;
         }
-        // THÊM MỚI: Xử lý sự kiện Logout
         else if (id == R.id.action_logout) {
             showLogoutConfirmationDialog();
             return true;
@@ -168,29 +177,53 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
                 .setTitle("Delete All Hikes")
                 .setMessage("Are you sure you want to delete ALL hikes? This action cannot be undone.")
                 .setPositiveButton("Delete All", (dialog, which) -> {
-                    dbHelper.deleteAllHikes();
+                    dbHelper.deleteAllHikes(); // Giả sử đây là lỗi gõ phím và
+                    // phải là deleteAllHikes()
+                    // dbHelper.deleteAllHikes(); // Sửa lại
                     loadHikesFromDb();
-                    Toast.makeText(MainActivity.this, "All hikes deleted.", Toast.LENGTH_SHORT).show();
+                    // THAY THẾ TOAST
+                    SnackbarHelper.showCustomSnackbar(
+                            fabAdd,
+                            "All hikes deleted.",
+                            SnackbarHelper.TYPE_INFO,
+                            SNACKBAR_DURATION
+                    );
                 })
                 .setNegativeButton("Cancel", null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }
 
-    // THÊM MỚI: Phương thức xử lý Logout
+    // Sửa lỗi (nếu có) trong tên phương thức
+    // private void showDeleteAllConfirmationDialog() {
+    //     new AlertDialog.Builder(this)
+    //             .setTitle("Delete All Hikes")
+    //             ...
+    //             .setPositiveButton("Delete All", (dialog, which) -> {
+    //                 dbHelper.deleteAllHikes(); // Đảm bảo tên phương thức này đúng
+    //                 loadHikesFromDb();
+    //                 SnackbarHelper.showCustomSnackbar(
+    //                         fabAdd,
+    //                         "All hikes deleted.",
+    //                         SnackbarHelper.TYPE_INFO,
+    //                         SNACKBAR_DURATION
+    //                 );
+    //             })
+    //             ...
+    //             .show();
+    // }
+
     private void showLogoutConfirmationDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Logout", (dialog, which) -> {
-                    // Xóa SharedPreferences [cite: 973-977]
                     SharedPreferences prefs = getSharedPreferences(SplashActivity.PREFS_NAME, MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putBoolean(SplashActivity.KEY_IS_LOGGED_IN, false);
                     editor.remove("LOGGED_IN_USERNAME");
                     editor.apply();
 
-                    // Quay lại LoginActivity
                     Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
@@ -209,5 +242,21 @@ public class MainActivity extends AppCompatActivity implements HikeAdapter.OnIte
     @Override
     public void onResetSearchClicked() {
         loadHikesFromDb();
+    }
+
+    // GIỮ LẠI TOAST cho chức năng "Press back again to exit"
+    @Override
+    public void onBackPressed() {
+        if (backPressedTime + 2000 > System.currentTimeMillis()) {
+            if (backToast != null) {
+                backToast.cancel();
+            }
+            super.onBackPressed();
+            return;
+        } else {
+            backToast = Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT);
+            backToast.show();
+        }
+        backPressedTime = System.currentTimeMillis();
     }
 }

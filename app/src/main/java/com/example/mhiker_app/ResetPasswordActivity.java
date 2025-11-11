@@ -1,10 +1,9 @@
 // app/src/main/java/com/example/mhiker_app/ResetPasswordActivity.java
-
 package com.example.mhiker_app;
 
 import android.os.Bundle;
 import android.widget.TextView;
-import android.widget.Toast;
+// XÓA: import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,6 +16,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
     private MaterialButton btnReset;
     private TextView tvBackToLogin;
     private DatabaseHelper dbHelper;
+    private static final int SNACKBAR_DURATION = 2500; // 2.5 giây
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +24,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_reset_password);
 
         dbHelper = new DatabaseHelper(this);
+        // Tên biến này khớp với mã nguồn mới của bạn
         etUsername = findViewById(R.id.etResetUsername);
         etPhone = findViewById(R.id.etResetPhone);
         etNewPassword = findViewById(R.id.etResetNewPassword);
@@ -40,25 +41,47 @@ public class ResetPasswordActivity extends AppCompatActivity {
         String newPassword = etNewPassword.getText().toString().trim();
 
         if (username.isEmpty() || phone.isEmpty() || newPassword.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            // THAY THẾ TOAST
+            SnackbarHelper.showCustomSnackbar(
+                    btnReset,
+                    "Please fill all fields",
+                    SnackbarHelper.TYPE_ERROR,
+                    SNACKBAR_DURATION
+            );
             return;
         }
 
-        // 1. Kiểm tra xem username và SĐT có khớp không
+        // Logic kiểm tra từ mã nguồn mới của bạn
         boolean userExists = dbHelper.checkUserForReset(username, phone);
 
         if (userExists) {
-            // 2. Nếu khớp, cập nhật mật khẩu
             int rowsAffected = dbHelper.updatePassword(username, newPassword);
             if (rowsAffected > 0) {
-                Toast.makeText(this, "Password reset successful! You can login now.", Toast.LENGTH_LONG).show();
-                finish(); // Quay lại Login
+                // THAY THẾ TOAST
+                SnackbarHelper.showCustomSnackbar(
+                        btnReset,
+                        "Password reset successful! You can login now.",
+                        SnackbarHelper.TYPE_SUCCESS,
+                        SNACKBAR_DURATION
+                );
+                finish();
             } else {
-                Toast.makeText(this, "Error updating password. Please try again.", Toast.LENGTH_SHORT).show();
+                // THAY THẾ TOAST
+                SnackbarHelper.showCustomSnackbar(
+                        btnReset,
+                        "Error updating password. Please try again.",
+                        SnackbarHelper.TYPE_ERROR,
+                        SNACKBAR_DURATION
+                );
             }
         } else {
-            // 3. Nếu không, thông báo lỗi
-            Toast.makeText(this, "Username or Phone Number is incorrect", Toast.LENGTH_SHORT).show();
+            // THAY THẾ TOAST
+            SnackbarHelper.showCustomSnackbar(
+                    btnReset,
+                    "Username or Phone Number is incorrect",
+                    SnackbarHelper.TYPE_ERROR,
+                    SNACKBAR_DURATION
+            );
         }
     }
 }
