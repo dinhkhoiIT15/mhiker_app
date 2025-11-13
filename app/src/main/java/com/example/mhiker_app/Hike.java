@@ -14,10 +14,14 @@ public class Hike implements Serializable {
     private String hikerCount;
     private String equipment;
 
+    // THÊM MỚI: Trường cho GPS
+    private double latitude;
+    private double longitude;
+
     public Hike() {
     }
 
-    public Hike(long id, String name, String location, String dateOfHike, boolean parkingAvailable, String lengthOfHike, String difficultyLevel, String description, String hikerCount, String equipment) {
+    public Hike(long id, String name, String location, String dateOfHike, boolean parkingAvailable, String lengthOfHike, String difficultyLevel, String description, String hikerCount, String equipment, double latitude, double longitude) {
         this.id = id;
         this.name = name;
         this.location = location;
@@ -28,8 +32,12 @@ public class Hike implements Serializable {
         this.description = description;
         this.hikerCount = hikerCount;
         this.equipment = equipment;
+        // THÊM MỚI
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
+    // ... (Toàn bộ getters and setters cũ) ...
 
     public long getId() {
         return id;
@@ -109,5 +117,22 @@ public class Hike implements Serializable {
 
     public void setEquipment(String equipment) {
         this.equipment = equipment;
+    }
+
+    // THÊM MỚI: Getters and Setters cho GPS
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 }

@@ -4,12 +4,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView; // THÊM MỚI
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File; // THÊM MỚI
 import java.util.List;
+
+import coil.Coil; // THÊM MỚI
+import coil.ImageLoader; // THÊM MỚI
+import coil.request.ImageRequest; // THÊM MỚI
 
 public class ObservationAdapter extends RecyclerView.Adapter<ObservationAdapter.ObservationViewHolder> {
 
@@ -46,6 +52,21 @@ public class ObservationAdapter extends RecyclerView.Adapter<ObservationAdapter.
             holder.tvObservationComments.setVisibility(View.GONE);
         }
 
+        // THÊM MỚI: Logic tải ảnh
+        String imagePath = currentObservation.getImagePath();
+        if (imagePath != null && !imagePath.isEmpty()) {
+            ImageLoader imageLoader = Coil.imageLoader(holder.itemView.getContext());
+            ImageRequest request = new ImageRequest.Builder(holder.itemView.getContext())
+                    .data(new File(imagePath))
+                    .target(holder.imgObservation)
+                    .build();
+            imageLoader.enqueue(request);
+            holder.imgObservation.setVisibility(View.VISIBLE);
+        } else {
+            holder.imgObservation.setVisibility(View.GONE);
+        }
+        // KẾT THÚC THÊM MỚI
+
         holder.btnEdit.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onEditClick(currentObservation);
@@ -71,6 +92,7 @@ public class ObservationAdapter extends RecyclerView.Adapter<ObservationAdapter.
     public static class ObservationViewHolder extends RecyclerView.ViewHolder {
         TextView tvObservationText, tvObservationTime, tvObservationComments;
         ImageButton btnEdit, btnDelete;
+        ImageView imgObservation; // THÊM MỚI
 
         public ObservationViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,6 +101,7 @@ public class ObservationAdapter extends RecyclerView.Adapter<ObservationAdapter.
             tvObservationComments = itemView.findViewById(R.id.tvObservationComments);
             btnEdit = itemView.findViewById(R.id.btnEditObservation);
             btnDelete = itemView.findViewById(R.id.btnDeleteObservation);
+            imgObservation = itemView.findViewById(R.id.imgObservation); // THÊM MỚI
         }
     }
 }

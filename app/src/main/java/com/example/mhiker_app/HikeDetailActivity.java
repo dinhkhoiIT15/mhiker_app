@@ -11,18 +11,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri; // THÊM MỚI
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton; // THÊM MỚI
 import android.widget.TextView;
 import android.widget.Toast;
-// XÓA: import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale; // THÊM MỚI
 
 public class HikeDetailActivity extends AppCompatActivity implements ObservationAdapter.OnObservationListener {
 
@@ -35,7 +37,8 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
     private ObservationAdapter observationAdapter;
     private List<Observation> observationList;
     private MaterialButton btnAddObservation;
-    private static final int SNACKBAR_DURATION = 2500; // 2.5 giây
+    private ImageButton btnShowOnMap; // THÊM MỚI
+    private static final int SNACKBAR_DURATION = 2500;
 
     private final ActivityResultLauncher<Intent> editHikeLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -67,7 +70,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         }
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        // Tên biến này khớp với mã nguồn mới của bạn
         tvName = findViewById(R.id.tvDetailName);
         tvLocation = findViewById(R.id.tvDetailLocation);
         tvDate = findViewById(R.id.tvDetailDate);
@@ -77,6 +79,7 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         tvHikerCount = findViewById(R.id.tvDetailHikerCount);
         tvEquipment = findViewById(R.id.tvDetailEquipment);
         tvDetailDescription = findViewById(R.id.tvDetailDescription);
+        btnShowOnMap = findViewById(R.id.btnShowOnMap); // THÊM MỚI
 
         rvObservations = findViewById(R.id.rvObservations);
         btnAddObservation = findViewById(R.id.btnAddObservation);
@@ -90,7 +93,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 intent.putExtra("HIKE_ID", hike.getId());
                 observationLauncher.launch(intent);
             } else {
-                // THAY THẾ TOAST
                 SnackbarHelper.showCustomSnackbar(
                         btnAddObservation,
                         "Cannot add observation, hike data is missing.",
@@ -99,8 +101,12 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 );
             }
         });
+
+        // THÊM MỚI: Xử lý nhấp nút bản đồ
+        btnShowOnMap.setOnClickListener(v -> showOnMap());
     }
 
+    // ... (onCreateOptionsMenu và onOptionsItemSelected giữ nguyên) ...
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -117,7 +123,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 intent.putExtra("EDIT_HIKE", hike);
                 editHikeLauncher.launch(intent);
             } else {
-                // THAY THẾ TOAST
                 SnackbarHelper.showCustomSnackbar(
                         btnAddObservation,
                         "Cannot edit, hike data is missing.",
@@ -130,7 +135,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
             if (hike != null) {
                 showDeleteConfirmationDialog();
             } else {
-                // THAY THẾ TOAST
                 SnackbarHelper.showCustomSnackbar(
                         btnAddObservation,
                         "Cannot delete, hike data is missing.",
@@ -160,7 +164,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
 
     private void loadHikeDetails() {
         long hikeId;
-        // Logic lấy ID từ mã nguồn mới của bạn
         if (getIntent().hasExtra("HIKE_ID")) {
             hikeId = getIntent().getLongExtra("HIKE_ID", -1);
             getIntent().removeExtra("HIKE_ID");
@@ -169,9 +172,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
             hikeId = hike.getId();
         }
         else {
-            // THAY THẾ TOAST
-            // Không thể dùng btnAddObservation vì nó có thể chưa được khởi tạo
-            // Dùng view gốc
             View rootView = findViewById(android.R.id.content);
             SnackbarHelper.showCustomSnackbar(
                     rootView,
@@ -209,7 +209,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
             return;
         }
 
-        // Tải dữ liệu (dùng tên phương thức mới)
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(hike.getName());
         }
@@ -225,6 +224,13 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         String description = hike.getDescription();
         tvDetailDescription.setText(description == null || description.isEmpty() ? "N/A" : description);
 
+        // THÊM MỚI: Hiển thị nút bản đồ nếu có tọa độ
+        if (hike.getLatitude() != 0.0 || hike.getLongitude() != 0.0) {
+            btnShowOnMap.setVisibility(View.VISIBLE);
+        } else {
+            btnShowOnMap.setVisibility(View.GONE);
+        }
+
         loadObservations();
     }
 
@@ -235,15 +241,55 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
         }
     }
 
+    // THÊM MỚI: Hàm mở Intent bản đồ
+    private void showOnMap() {
+        if (hike == null || (hike.getLatitude() == 0.0 && hike.getLongitude() == 0.0)) {
+            SnackbarHelper.showCustomSnackbar(
+                    btnAddObservation,
+                    "No GPS location saved for this hike.",
+                    SnackbarHelper.TYPE_INFO,
+                    SNACKBAR_DURATION
+            );
+            return;
+        }
+
+        // Tạo URI geo
+        String uri = String.format(Locale.ENGLISH, "geo:%f,%f?q=%f,%f(%s)",
+                hike.getLatitude(),
+                hike.getLongitude(),
+                hike.getLatitude(),
+                hike.getLongitude(),
+                Uri.encode(hike.getName()) // Mã hóa tên cho URI
+        );
+
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        mapIntent.setPackage("com.google.android.apps.maps"); // Cố gắng mở Google Maps
+
+        // Kiểm tra xem Google Maps có được cài đặt không
+        if (mapIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapIntent);
+        } else {
+            // Nếu không, hãy để hệ thống chọn bất kỳ ứng dụng bản đồ nào
+            Intent genericMapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            if (genericMapIntent.resolveActivity(getPackageManager()) != null) {
+                startActivity(genericMapIntent);
+            } else {
+                SnackbarHelper.showCustomSnackbar(
+                        btnAddObservation,
+                        "No map application found.",
+                        SnackbarHelper.TYPE_ERROR,
+                        SNACKBAR_DURATION
+                );
+            }
+        }
+    }
+
     private void showDeleteConfirmationDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Hike")
                 .setMessage("Are you sure you want to delete '" + hike.getName() + "'? All its observations will also be deleted. This action cannot be undone.")
                 .setPositiveButton("Delete", (dialog, which) -> {
                     dbHelper.deleteHike(hike.getId());
-                    // THAY THẾ TOAST
-                    // Không thể dùng view ở đây vì activity sắp đóng
-                    // Tạm thời giữ Toast hoặc chấp nhận không có thông báo
                     Toast.makeText(HikeDetailActivity.this, "'" + hike.getName() + "' deleted.", Toast.LENGTH_SHORT).show();
                     setResult(Activity.RESULT_OK);
                     finish();
@@ -267,7 +313,6 @@ public class HikeDetailActivity extends AppCompatActivity implements Observation
                 .setMessage("Are you sure you want to delete this observation?")
                 .setPositiveButton("Delete", (dialog, which) -> {
                     dbHelper.deleteObservation(observation.getId());
-                    // THAY THẾ TOAST
                     SnackbarHelper.showCustomSnackbar(
                             btnAddObservation,
                             "Observation deleted.",

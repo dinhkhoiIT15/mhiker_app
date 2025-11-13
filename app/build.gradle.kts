@@ -37,6 +37,11 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+
+    // THÊM MỚI: Thư viện Vị trí và Tải ảnh
+    implementation(libs.playServicesLocation)
+    implementation(libs.coil)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

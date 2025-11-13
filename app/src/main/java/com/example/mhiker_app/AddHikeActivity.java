@@ -1,24 +1,36 @@
 // app/src/main/java/com/example/mhiker_app/AddHikeActivity.java
 package com.example.mhiker_app;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
-// XÓA: import android.widget.Toast;
+import android.widget.ImageButton; // THÊM MỚI
 
+import com.google.android.gms.location.FusedLocationProviderClient; // THÊM MỚI
+import com.google.android.gms.location.LocationServices; // THÊM MỚI
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.DateFormat;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 
 public class AddHikeActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
@@ -29,8 +41,37 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
     private AutoCompleteTextView autoCompleteDifficulty, autoCompleteParking;
     private DatabaseHelper dbHelper;
 
+    // THÊM MỚI: Cho GPS
+    private ImageButton btnGetLocation;
+    private FusedLocationProviderClient fusedLocationClient;
+    private double currentLatitude = 0.0;
+    private double currentLongitude = 0.0;
+
     private Hike hikeToEdit = null;
     private static final int SNACKBAR_DURATION = 2500; // 2.5 giây
+
+    // THÊM MỚI: Trình khởi chạy yêu cầu quyền
+    private final ActivityResultLauncher<String[]> locationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                Boolean fineLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
+                Boolean coarseLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false);
+                if (fineLocationGranted != null && fineLocationGranted) {
+                    // Quyền chính xác được cấp
+                    fetchLastLocation();
+                } else if (coarseLocationGranted != null && coarseLocationGranted) {
+                    // Quyền tương đối được cấp
+                    fetchLastLocation();
+                } else {
+                    // Không có quyền nào được cấp
+                    SnackbarHelper.showCustomSnackbar(
+                            btnSave,
+                            "Location permission denied.",
+                            SnackbarHelper.TYPE_ERROR,
+                            SNACKBAR_DURATION
+                    );
+                }
+            });
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +79,8 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         setContentView(R.layout.activity_add_hike);
 
         dbHelper = new DatabaseHelper(this);
+        // THÊM MỚI: Khởi tạo FusedLocationProviderClient
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar_add_hike);
         setSupportActionBar(toolbar);
@@ -46,7 +89,6 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         }
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        // Ánh xạ các view - Tên biến này khớp với mã nguồn mới nhất của bạn
         etName = findViewById(R.id.etName);
         etLocation = findViewById(R.id.etLocation);
         etLength = findViewById(R.id.etLength);
@@ -57,6 +99,8 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         etHikerCount = findViewById(R.id.etHikerCount);
         etEquipment = findViewById(R.id.etEquipment);
         etDescription = findViewById(R.id.etDescription);
+        // THÊM MỚI: Ánh xạ nút GPS
+        btnGetLocation = findViewById(R.id.btnGetLocation);
 
         setupDifficultyMenu();
         setupParkingMenu();
@@ -80,6 +124,9 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
             datePicker.show(getSupportFragmentManager(), "date picker");
         });
 
+        // THÊM MỚI: Xử lý sự kiện nhấp nút GPS
+        btnGetLocation.setOnClickListener(v -> checkLocationPermissionAndFetch());
+
         btnSave.setOnClickListener(v -> showConfirmationDialog());
     }
 
@@ -100,7 +147,6 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
     private void populateDataForEdit() {
         if (hikeToEdit == null) return;
 
-        // Sử dụng các phương thức getter/setter chính xác từ mã nguồn mới của bạn
         etName.setText(hikeToEdit.getName());
         etLocation.setText(hikeToEdit.getLocation());
         etDate.setText(hikeToEdit.getDateOfHike());
@@ -110,9 +156,12 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         etDescription.setText(hikeToEdit.getDescription());
         autoCompleteDifficulty.setText(hikeToEdit.getDifficultyLevel(), false);
 
-        // Xử lý boolean cho parking
         String parkingText = hikeToEdit.isParkingAvailable() ? "Yes" : "No";
         autoCompleteParking.setText(parkingText, false);
+
+        // THÊM MỚI: Tải tọa độ đã lưu
+        currentLatitude = hikeToEdit.getLatitude();
+        currentLongitude = hikeToEdit.getLongitude();
     }
 
 
@@ -127,6 +176,77 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         etDate.setText(currentDateString);
     }
 
+    // THÊM MỚI: Kiểm tra quyền và lấy vị trí
+    private void checkLocationPermissionAndFetch() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // Quyền đã được cấp, lấy vị trí
+            fetchLastLocation();
+        } else {
+            // Yêu cầu quyền
+            locationPermissionLauncher.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            });
+        }
+    }
+
+    // THÊM MỚI: Lấy vị trí cuối cùng
+    @SuppressLint("MissingPermission") // Đã kiểm tra trong checkLocationPermissionAndFetch
+    private void fetchLastLocation() {
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        currentLatitude = location.getLatitude();
+                        currentLongitude = location.getLongitude();
+
+                        SnackbarHelper.showCustomSnackbar(
+                                btnSave,
+                                "Location acquired: " + currentLatitude + ", " + currentLongitude,
+                                SnackbarHelper.TYPE_SUCCESS,
+                                SNACKBAR_DURATION
+                        );
+                        // Cố gắng tự động điền tên vị trí
+                        geocodeLocation(currentLatitude, currentLongitude);
+                    } else {
+                        SnackbarHelper.showCustomSnackbar(
+                                btnSave,
+                                "Unable to fetch location. Try again later.",
+                                SnackbarHelper.TYPE_ERROR,
+                                SNACKBAR_DURATION
+                        );
+                    }
+                })
+                .addOnFailureListener(this, e ->
+                        SnackbarHelper.showCustomSnackbar(
+                                btnSave,
+                                "Error fetching location: " + e.getMessage(),
+                                SnackbarHelper.TYPE_ERROR,
+                                SNACKBAR_DURATION
+                        )
+                );
+    }
+
+    // THÊM MỚI: (Tùy chọn) Chuyển tọa độ thành tên địa điểm
+    private void geocodeLocation(double latitude, double longitude) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                String locationName = address.getLocality(); // Tên thành phố
+                if (locationName == null || locationName.isEmpty()) {
+                    locationName = address.getSubAdminArea(); // Tên quận/huyện
+                }
+                if (locationName != null && !locationName.isEmpty()) {
+                    etLocation.setText(locationName);
+                }
+            }
+        } catch (Exception e) {
+            // Bỏ qua lỗi geocoding
+        }
+    }
+
     private void showConfirmationDialog() {
         String name = etName.getText().toString().trim();
         String location = etLocation.getText().toString().trim();
@@ -139,9 +259,8 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         String description = etDescription.getText().toString().trim();
 
         if (name.isEmpty() || location.isEmpty() || date.isEmpty() || length.isEmpty() || difficulty.isEmpty() || parkingString.isEmpty()) {
-            // THAY THẾ TOAST
             SnackbarHelper.showCustomSnackbar(
-                    btnSave, // View neo
+                    btnSave,
                     "Please fill all required fields",
                     SnackbarHelper.TYPE_ERROR,
                     SNACKBAR_DURATION
@@ -149,12 +268,16 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
             return;
         }
 
-        // Chuyển đổi parking String sang boolean
         boolean parking = parkingString.equals("Yes");
+
+        // CẬP NHẬT: Thêm thông tin GPS vào dialog
+        String locationInfo = (currentLatitude != 0.0) ?
+                location + " (GPS: " + String.format("%.4f", currentLatitude) + ", " + String.format("%.4f", currentLongitude) + ")" :
+                location;
 
         String confirmationMessage = "Please confirm the details below:\n\n" +
                 "Name: " + name + "\n" +
-                "Location: " + location + "\n" +
+                "Location: " + locationInfo + "\n" + // Cập nhật
                 "Date: " + date + "\n" +
                 "Parking Available: " + parkingString + "\n" +
                 "Length of Hike: " + length + " km\n" +
@@ -181,21 +304,22 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
 
         Hike hike = (hikeToEdit == null) ? new Hike() : hikeToEdit;
 
-        // Sử dụng các phương thức setter chính xác
         hike.setName(name);
         hike.setLocation(location);
         hike.setDateOfHike(date);
         hike.setLengthOfHike(length);
         hike.setDifficultyLevel(difficulty);
-        hike.setParkingAvailable(parking); // Gửi boolean
+        hike.setParkingAvailable(parking);
         hike.setHikerCount(hikerCount);
         hike.setEquipment(equipment);
         hike.setDescription(description);
+        // THÊM MỚI: Lưu tọa độ GPS
+        hike.setLatitude(currentLatitude);
+        hike.setLongitude(currentLongitude);
 
         if (hikeToEdit == null) {
             long id = dbHelper.addHike(hike);
             if (id != -1) {
-                // THAY THẾ TOAST
                 SnackbarHelper.showCustomSnackbar(
                         btnSave,
                         "Hike saved successfully!",
@@ -205,7 +329,6 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
                 setResult(Activity.RESULT_OK);
                 finish();
             } else {
-                // THAY THẾ TOAST
                 SnackbarHelper.showCustomSnackbar(
                         btnSave,
                         "Error saving hike.",
@@ -216,7 +339,6 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
         } else {
             int rowsAffected = dbHelper.updateHike(hike);
             if (rowsAffected > 0) {
-                // THAY THẾ TOAST
                 SnackbarHelper.showCustomSnackbar(
                         btnSave,
                         "Hike updated successfully!",
@@ -226,7 +348,6 @@ public class AddHikeActivity extends AppCompatActivity implements DatePickerDial
                 setResult(Activity.RESULT_OK);
                 finish();
             } else {
-                // THAY THẾ TOAST
                 SnackbarHelper.showCustomSnackbar(
                         btnSave,
                         "Error updating hike.",
