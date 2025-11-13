@@ -9,8 +9,13 @@ public class Observation implements Serializable {
     private String additionalComments;
     private long hikeId;
 
+    // THÊM MỚI: Trường cho đường dẫn ảnh
+    private String imagePath;
+
     public Observation() {
     }
+
+    // ... (Getters and setters cũ) ...
 
     public long getId() {
         return id;
@@ -50,5 +55,14 @@ public class Observation implements Serializable {
 
     public void setHikeId(long hikeId) {
         this.hikeId = hikeId;
+    }
+
+    // THÊM MỚI: Getter and Setter cho imagePath
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }

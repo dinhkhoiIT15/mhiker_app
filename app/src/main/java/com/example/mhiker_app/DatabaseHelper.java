@@ -15,8 +15,8 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "M_Hiker.db";
-    // THAY ĐỔI: Tăng phiên bản DB để thêm bảng Users
-    private static final int DATABASE_VERSION = 8;
+    // CẬP NHẬT: Tăng phiên bản DB lên 10 để thêm cột GPS và Ảnh
+    private static final int DATABASE_VERSION = 10;
 
     // Bảng Hikes
     public static final String TABLE_HIKES = "hikes";
@@ -30,6 +30,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_DESCRIPTION = "description";
     public static final String COLUMN_HIKER_COUNT = "hiker_count";
     public static final String COLUMN_EQUIPMENT = "equipment";
+    // THÊM MỚI: Cột GPS
+    public static final String COLUMN_LATITUDE = "latitude";
+    public static final String COLUMN_LONGITUDE = "longitude";
 
     // Bảng Observations
     public static final String TABLE_OBSERVATIONS = "observations";
@@ -38,8 +41,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_OBS_TIME = "observation_time";
     public static final String COLUMN_OBS_COMMENTS = "additional_comments";
     public static final String COLUMN_HIKE_ID_FK = "hike_id";
+    // THÊM MỚI: Cột ảnh
+    public static final String COLUMN_OBS_IMAGE_PATH = "image_path";
 
-    // THÊM MỚI: Bảng Users
+    // Bảng Users
     public static final String TABLE_USERS = "users";
     public static final String COLUMN_USER_ID = "_id";
     public static final String COLUMN_USER_NAME = "name";
@@ -59,7 +64,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_DIFFICULTY + " TEXT NOT NULL, " +
                     COLUMN_DESCRIPTION + " TEXT, " +
                     COLUMN_HIKER_COUNT + " TEXT, " +
-                    COLUMN_EQUIPMENT + " TEXT);";
+                    COLUMN_EQUIPMENT + " TEXT, " +
+                    // THÊM MỚI
+                    COLUMN_LATITUDE + " REAL DEFAULT 0.0, " +
+                    COLUMN_LONGITUDE + " REAL DEFAULT 0.0);";
 
     private static final String CREATE_TABLE_OBSERVATIONS =
             "CREATE TABLE " + TABLE_OBSERVATIONS + " (" +
@@ -67,15 +75,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_OBS_TEXT + " TEXT NOT NULL, " +
                     COLUMN_OBS_TIME + " TEXT NOT NULL, " +
                     COLUMN_OBS_COMMENTS + " TEXT, " +
+                    // THÊM MỚI
+                    COLUMN_OBS_IMAGE_PATH + " TEXT, " +
                     COLUMN_HIKE_ID_FK + " INTEGER, " +
                     "FOREIGN KEY(" + COLUMN_HIKE_ID_FK + ") REFERENCES " + TABLE_HIKES + "(" + COLUMN_ID + "));";
 
-    // THÊM MỚI: Câu lệnh tạo bảng Users
     private static final String CREATE_TABLE_USERS =
             "CREATE TABLE " + TABLE_USERS + " (" +
                     COLUMN_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_USER_NAME + " TEXT NOT NULL, " +
-                    COLUMN_USER_USERNAME + " TEXT NOT NULL UNIQUE, " + // Đảm bảo username là duy nhất
+                    COLUMN_USER_USERNAME + " TEXT NOT NULL UNIQUE, " +
                     COLUMN_USER_PASSWORD + " TEXT NOT NULL, " +
                     COLUMN_USER_PHONE + " TEXT);";
 
@@ -88,20 +97,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_HIKES);
         db.execSQL(CREATE_TABLE_OBSERVATIONS);
-        db.execSQL(CREATE_TABLE_USERS); // THÊM MỚI: Tạo bảng users
+        db.execSQL(CREATE_TABLE_USERS);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Xóa bảng cũ và tạo lại
+        // CẬP NHẬT: onUpgrade sẽ chạy vì version đã tăng
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_OBSERVATIONS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_HIKES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS); // THÊM MỚI: Xóa bảng users
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         onCreate(db);
     }
 
     // -----------------------------------------------------------------
-    // PHƯƠNG THỨC CHO HIKE (GIỮ NGUYÊN)
+    // PHƯƠNG THỨC CHO HIKE
     // -----------------------------------------------------------------
 
     public long addHike(Hike hike) {
@@ -116,6 +125,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_DESCRIPTION, hike.getDescription());
         values.put(COLUMN_HIKER_COUNT, hike.getHikerCount());
         values.put(COLUMN_EQUIPMENT, hike.getEquipment());
+        // THÊM MỚI
+        values.put(COLUMN_LATITUDE, hike.getLatitude());
+        values.put(COLUMN_LONGITUDE, hike.getLongitude());
 
         long id = db.insert(TABLE_HIKES, null, values);
         db.close();
@@ -163,11 +175,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_DESCRIPTION, hike.getDescription());
         values.put(COLUMN_HIKER_COUNT, hike.getHikerCount());
         values.put(COLUMN_EQUIPMENT, hike.getEquipment());
+        // THÊM MỚI
+        values.put(COLUMN_LATITUDE, hike.getLatitude());
+        values.put(COLUMN_LONGITUDE, hike.getLongitude());
 
         return db.update(TABLE_HIKES, values, COLUMN_ID + " = ?",
                 new String[]{String.valueOf(hike.getId())});
     }
 
+    // ... (Các phương thức searchHikesByName, searchHikesAdvanced giữ nguyên) ...
     public List<Hike> searchHikesByName(String query) {
         return searchHikesAdvanced(query, "", "", "");
     }
@@ -237,7 +253,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // -----------------------------------------------------------------
-    // PHƯƠNG THỨC CHO OBSERVATION (GIỮ NGUYÊN)
+    // PHƯƠNG THỨC CHO OBSERVATION
     // -----------------------------------------------------------------
 
     public long addObservation(Observation observation) {
@@ -247,6 +263,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_OBS_TIME, observation.getTimeOfObservation());
         values.put(COLUMN_OBS_COMMENTS, observation.getAdditionalComments());
         values.put(COLUMN_HIKE_ID_FK, observation.getHikeId());
+        // THÊM MỚI
+        values.put(COLUMN_OBS_IMAGE_PATH, observation.getImagePath());
         long id = db.insert(TABLE_OBSERVATIONS, null, values);
         db.close();
         return id;
@@ -274,6 +292,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_OBS_TEXT, observation.getObservationText());
         values.put(COLUMN_OBS_TIME, observation.getTimeOfObservation());
         values.put(COLUMN_OBS_COMMENTS, observation.getAdditionalComments());
+        // THÊM MỚI
+        values.put(COLUMN_OBS_IMAGE_PATH, observation.getImagePath());
         int rows = db.update(TABLE_OBSERVATIONS, values, COLUMN_OBS_ID + " = ?",
                 new String[]{String.valueOf(observation.getId())});
         db.close();
@@ -288,7 +308,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // -----------------------------------------------------------------
-    // PHƯƠNG THỨC CURSOR (GIỮ NGUYÊN)
+    // PHƯƠNG THỨC CURSOR
     // -----------------------------------------------------------------
 
     private Hike cursorToHike(Cursor cursor) {
@@ -303,6 +323,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         hike.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)));
         hike.setHikerCount(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HIKER_COUNT)));
         hike.setEquipment(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EQUIPMENT)));
+        // THÊM MỚI
+        hike.setLatitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_LATITUDE)));
+        hike.setLongitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_LONGITUDE)));
         return hike;
     }
 
@@ -313,33 +336,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         observation.setTimeOfObservation(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_OBS_TIME)));
         observation.setAdditionalComments(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_OBS_COMMENTS)));
         observation.setHikeId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_HIKE_ID_FK)));
+        // THÊM MỚI
+        observation.setImagePath(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_OBS_IMAGE_PATH)));
         return observation;
     }
 
     // -----------------------------------------------------------------
-    // THÊM MỚI: CÁC PHƯƠNG THỨC CHO USER
+    // CÁC PHƯƠNG THỨC CHO USER (Giữ nguyên)
     // -----------------------------------------------------------------
 
-    /**
-     * Thêm người dùng mới (dùng cho Đăng ký)
-     */
     public long addUser(User user) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_USER_NAME, user.getName());
         values.put(COLUMN_USER_USERNAME, user.getUsername());
-        values.put(COLUMN_USER_PASSWORD, user.getPassword()); // Trong ứng dụng thực tế, bạn NÊN mã hóa mật khẩu này
+        values.put(COLUMN_USER_PASSWORD, user.getPassword());
         values.put(COLUMN_USER_PHONE, user.getPhoneNumber());
-
-        // insert trả về -1 nếu lỗi, ví dụ như 'username' bị trùng
         long id = db.insert(TABLE_USERS, null, values);
         db.close();
         return id;
     }
 
-    /**
-     * Kiểm tra xem username đã tồn tại chưa
-     */
     public boolean checkUsernameExists(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_USER_ID},
@@ -354,9 +371,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return exists;
     }
 
-    /**
-     * Kiểm tra thông tin đăng nhập (dùng cho Đăng nhập)
-     */
     public boolean checkUser(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_USER_ID},
@@ -371,9 +385,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return loginSuccess;
     }
 
-    /**
-     * Kiểm tra người dùng cho việc Reset Mật khẩu
-     */
     public boolean checkUserForReset(String username, String phoneNumber) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_USER_ID},
@@ -386,15 +397,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return exists;
     }
 
-    /**
-     * Cập nhật mật khẩu (dùng cho Reset Mật khẩu)
-     */
     public int updatePassword(String username, String newPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_USER_PASSWORD, newPassword);
 
-        // Cập nhật bảng users, nơi username khớp
         return db.update(TABLE_USERS, values, COLUMN_USER_USERNAME + " = ?",
                 new String[]{username});
     }
